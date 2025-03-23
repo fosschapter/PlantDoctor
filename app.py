@@ -2,10 +2,10 @@ import os
 import json
 import numpy as np
 from PIL import Image
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, TFAutoModel
 import gradio as gr
 from model_loader import load_model, preprocess_image, predict_disease
-from sklearn.metrics.pairwise import cosine_similarity
+import tensorflow as tf
 
 # Load the disease diagnosis model
 model_path = "attached_assets/mobilenetv2.h5"
@@ -27,20 +27,21 @@ DEMO_TREATMENTS = {
     "Grape_Black_rot": "For black rot in grapes, remove mummified berries, prune for good air circulation, apply fungicides like myclobutanil or captan, and maintain a clean vineyard floor."
 }
 
-# Precompute embeddings for treatment responses
+# Load model and tokenizer
 model_name = "sentence-transformers/all-MiniLM-L6-v2"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-llm_model = AutoModel.from_pretrained(model_name)
+llm_model = TFAutoModel.from_pretrained(model_name)
 
-def embed_text(text):
-    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
-    with torch.no_grad():
-        embeddings = llm_model(**inputs).last_hidden_state.mean(dim=1)
+# Function to generate embeddings
+def embed_text_tf(text):
+    inputs = tokenizer(text, return_tensors="tf", padding=True, truncation=True)
+    outputs = llm_model(**inputs)
+    embeddings = tf.reduce_mean(outputs.last_hidden_state, axis=1)  # Mean pooling
     return embeddings
 
 # Precompute embeddings for treatments
 treatment_texts = list(DEMO_TREATMENTS.values())
-treatment_embeddings = torch.cat([embed_text(t) for t in treatment_texts], dim=0)
+treatment_embeddings = tf.concat([embed_text_tf(t) for t in treatment_texts], axis=0)
 
 # Diagnosis function
 def diagnose_image(image):
@@ -68,11 +69,12 @@ def chat_with_bot(message, history):
         return history + [["", "Please ask a question about plant diseases or treatments."]]
 
     # Embed the user's query
-    query_embedding = embed_text(message)
+    query_embedding = embed_text_tf(message)
     
     # Compute cosine similarity with treatment embeddings
-    similarities = cosine_similarity(query_embedding, treatment_embeddings)
-    best_match_idx = similarities.argmax()
+    similarities = tf.keras.metrics.CosineSimilarity(axis=1)
+    similarity_scores = similarities(query_embedding, treatment_embeddings)
+    best_match_idx = tf.argmax(similarity_scores).numpy()
     
     # Get the best-matching treatment advice
     response = treatment_texts[best_match_idx]
