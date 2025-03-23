@@ -46,33 +46,47 @@ def diagnose_image(image):
     result += f"### Recommended Treatment:\n{treatment}"
     return result
 
-# Load a lightweight LLM for the chatbot
-model_name = "distilbert/distilbert-base-uncased"
-qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_name)
+# Preloaded FAQ for common questions
+FAQ_RESPONSES = {
+    "powdery mildew": "Powdery mildew is a fungal disease that appears as white powdery spots on leaves and stems. To manage it, remove infected parts, ensure good air circulation, and apply fungicides like sulfur or potassium bicarbonate.",
+    "tomato blight": "Tomato blight can refer to early or late blight. Early blight causes dark spots with concentric rings, while late blight causes water-soaked lesions. Use fungicides and resistant plant varieties to control it."
+}
+
+# Lazy-load QA pipeline
+qa_pipeline = None
+
+def load_qa_pipeline():
+    global qa_pipeline
+    if qa_pipeline is None:
+        model_name = "distilbert-base-cased-distilled-squad"
+        qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_name)
 
 def chat_with_bot(message, history):
     if not message:
         return history + [["", "Please ask a question about plant diseases or treatments."]]
 
+    # Check preloaded FAQ first
+    for key, response in FAQ_RESPONSES.items():
+        if key in message.lower():
+            history.append([message, response])
+            return history
+
+    # Lazy-load QA pipeline
+    load_qa_pipeline()
+
     # Dynamic context construction
     relevant_context = """
     This chatbot is knowledgeable about plant diseases, treatments, and general agricultural practices. It uses AI to provide helpful insights based on your questions.
     """
-    
-    # Search for matching disease/treatment advice in DEMO_TREATMENTS
     for disease, treatment in DEMO_TREATMENTS.items():
-        if disease.lower().replace("_", " ") in message.lower():
-            relevant_context += f"\n\nTreatment for {disease.replace('_', ' ')}: {treatment}"
-            break  # Add advice for the first match
+        relevant_context += f"\n\nTreatment for {disease.replace('_', ' ')}: {treatment}"
 
     try:
-        # Use the pipeline for answering questions
         response = qa_pipeline(question=message, context=relevant_context)
         answer = response["answer"]
     except Exception as e:
         answer = f"Sorry, I couldn't process your request. Error: {str(e)}"
 
-    # Append the user message and the bot's response to the history
     history.append([message, answer])
     return history
 
@@ -93,14 +107,12 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visib
             
             diagnose_button.click(fn=diagnose_image, inputs=[image_input], outputs=[diagnosis_output])
         
-        # Update the Gradio TabItem for the chatbot
         with gr.TabItem("Agricultural Chatbot"):
             gr.Markdown("Ask questions about plant diseases, treatments, or general agricultural topics.")
             chatbot = gr.Chatbot(height=400)
             msg = gr.Textbox(placeholder="Ask a question about agriculture...", label="Your Question")
             clear = gr.Button("Clear Chat")
     
-            # Pass the history explicitly to the `chat_with_bot` function
             msg.submit(fn=chat_with_bot, inputs=[msg, chatbot], outputs=[chatbot])
             clear.click(lambda: [], None, chatbot, queue=False)
     
