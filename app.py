@@ -47,7 +47,7 @@ def diagnose_image(image):
     return result
 
 # Load a lightweight LLM for the chatbot
-model_name = "distilbert-base-uncased-distilled-squad"
+model_name = "distilbert/distilbert-base-uncased"
 qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_name)
 
 def chat_with_bot(message, history):
