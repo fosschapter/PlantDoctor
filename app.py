@@ -2,9 +2,10 @@ import os
 import json
 import numpy as np
 from PIL import Image
-from transformers import pipeline, AutoTokenizer, AutoModelForQuestionAnswering
+from transformers import AutoTokenizer, AutoModel
 import gradio as gr
 from model_loader import load_model, preprocess_image, predict_disease
+from sklearn.metrics.pairwise import cosine_similarity
 
 # Load the disease diagnosis model
 model_path = "attached_assets/mobilenetv2.h5"
@@ -26,6 +27,21 @@ DEMO_TREATMENTS = {
     "Grape_Black_rot": "For black rot in grapes, remove mummified berries, prune for good air circulation, apply fungicides like myclobutanil or captan, and maintain a clean vineyard floor."
 }
 
+# Precompute embeddings for treatment responses
+model_name = "sentence-transformers/all-MiniLM-L6-v2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+llm_model = AutoModel.from_pretrained(model_name)
+
+def embed_text(text):
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
+    with torch.no_grad():
+        embeddings = llm_model(**inputs).last_hidden_state.mean(dim=1)
+    return embeddings
+
+# Precompute embeddings for treatments
+treatment_texts = list(DEMO_TREATMENTS.values())
+treatment_embeddings = torch.cat([embed_text(t) for t in treatment_texts], dim=0)
+
 # Diagnosis function
 def diagnose_image(image):
     if image is None:
@@ -46,48 +62,21 @@ def diagnose_image(image):
     result += f"### Recommended Treatment:\n{treatment}"
     return result
 
-# Preloaded FAQ for common questions
-FAQ_RESPONSES = {
-    "powdery mildew": "Powdery mildew is a fungal disease that appears as white powdery spots on leaves and stems. To manage it, remove infected parts, ensure good air circulation, and apply fungicides like sulfur or potassium bicarbonate.",
-    "tomato blight": "Tomato blight can refer to early or late blight. Early blight causes dark spots with concentric rings, while late blight causes water-soaked lesions. Use fungicides and resistant plant varieties to control it."
-}
-
-# Lazy-load QA pipeline
-qa_pipeline = None
-
-def load_qa_pipeline():
-    global qa_pipeline
-    if qa_pipeline is None:
-        model_name = "sentence-transformers/all-MiniLM-L6-v2"
-        qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_name)
-
+# Chatbot function
 def chat_with_bot(message, history):
     if not message:
         return history + [["", "Please ask a question about plant diseases or treatments."]]
 
-    # Check preloaded FAQ first
-    for key, response in FAQ_RESPONSES.items():
-        if key in message.lower():
-            history.append([message, response])
-            return history
-
-    # Lazy-load QA pipeline
-    load_qa_pipeline()
-
-    # Dynamic context construction
-    relevant_context = """
-    This chatbot is knowledgeable about plant diseases, treatments, and general agricultural practices. It uses AI to provide helpful insights based on your questions.
-    """
-    for disease, treatment in DEMO_TREATMENTS.items():
-        relevant_context += f"\n\nTreatment for {disease.replace('_', ' ')}: {treatment}"
-
-    try:
-        response = qa_pipeline(question=message, context=relevant_context)
-        answer = response["answer"]
-    except Exception as e:
-        answer = f"Sorry, I couldn't process your request. Error: {str(e)}"
-
-    history.append([message, answer])
+    # Embed the user's query
+    query_embedding = embed_text(message)
+    
+    # Compute cosine similarity with treatment embeddings
+    similarities = cosine_similarity(query_embedding, treatment_embeddings)
+    best_match_idx = similarities.argmax()
+    
+    # Get the best-matching treatment advice
+    response = treatment_texts[best_match_idx]
+    history.append([message, response])
     return history
 
 
