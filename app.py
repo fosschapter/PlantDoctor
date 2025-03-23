@@ -96,9 +96,9 @@ def chat_with_bot(message, history):
                     "content": message
                 }
             ],
-            temperature=0.6,
-            max_completion_tokens=500,
-            top_p=0.95,
+            temperature=0.7,
+            max_completion_tokens=250,
+            top_p=1.00,
             stream=True,
             stop=None,
         )
