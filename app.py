@@ -58,54 +58,63 @@ DEMO_TREATMENTS = {
     "Tomato - Healthy": "Your tomato plant is healthy! Maintain regular watering, ensure adequate sunlight, and monitor for pests or diseases."
 }
 
+
 # Diagnosis function
 def diagnose_image(image):
     if image is None:
         return "Please upload an image for diagnosis."
     
-    img_array = np.array(image)
-    preprocessed_img = preprocess_image(img_array)
-    disease_label, confidence = predict_disease(model, preprocessed_img, class_labels)
-    confidence_pct = f"{confidence:.1f}%"
-    
-    treatment = DEMO_TREATMENTS.get(
-        disease_label, 
-        "No specific treatment information available for this condition. Consult with an agricultural expert."
-    )
-    
-    result = f"### Diagnosis: {disease_label.replace('_', ' ')}\n\n"
-    result += f"### Confidence: {confidence_pct}\n\n"
-    result += f"### Recommended Treatment:\n{treatment}"
-    return result
+    try:
+        img_array = np.array(image)
+        preprocessed_img = preprocess_image(img_array)
+        disease_label, confidence = predict_disease(model, preprocessed_img, class_labels)
+        confidence_pct = f"{confidence:.1f}%"
+        
+        treatment = DEMO_TREATMENTS.get(
+            disease_label, 
+            "No specific treatment information available for this condition. Consult with an agricultural expert."
+        )
+        
+        result = f"### Diagnosis: {disease_label.replace('_', ' ')}\n\n"
+        result += f"### Confidence: {confidence_pct}\n\n"
+        result += f"### Recommended Treatment:\n{treatment}"
+        return result
+    except Exception as e:
+        return f"Error during diagnosis: {e}"
 
 # Groq Chatbot API configuration
 client = Groq(api_key="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")
 
 # Chatbot function using Groq API
 def chat_with_bot(message, history):
-    if not message:
+    if not message.strip():
         return history + [["", "Please ask a question about plant diseases or treatments."]]
 
-    # Query the Groq API for response
     try:
+        # Add a system prompt to guide the chatbot
+        messages = [
+            {"role": "system", "content": "You are an expert in plant diseases and treatments. Answer questions based on agricultural knowledge."},
+            {"role": "user", "content": message}
+        ]
+
+        # Query the Groq API
         completion = client.chat.completions.create(
             model="deepseek-r1-distill-qwen-32b",
-            messages=[
-                {
-                    "role": "user",
-                    "content": message
-                }
-            ],
-            temperature=0.7,
+            messages=messages,
+            temperature=0.5,
             max_completion_tokens=250,
-            top_p=1.00,
+            top_p=1.0,
             stream=True,
-            stop=None,
         )
 
+        # Collect response from the stream
         response = ""
         for chunk in completion:
-            response += chunk.choices[0].delta.content or ""
+            if "choices" in chunk and chunk.choices[0].delta.content:
+                response += chunk.choices[0].delta.content
+
+        if not response.strip():
+            response = "I couldn't generate an answer. Please try rephrasing your question or ask a different one."
 
         history.append([message, response])
     except Exception as e:
