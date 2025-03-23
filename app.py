@@ -47,7 +47,7 @@ def diagnose_image(image):
     return result
 
 # Load a lightweight LLM for the chatbot
-model_name = "microsoft/deberta-v3-small"
+model_name = "distilbert-base-uncased-distilled-squad"
 qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_name)
 
 # Chatbot function
