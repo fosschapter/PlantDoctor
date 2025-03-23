@@ -12,3 +12,4 @@ transformers
 tiktoken
 sentencepiece
 scikit-learn
+groq
