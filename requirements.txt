@@ -9,3 +9,4 @@ werkzeug>=2.0.0
 opencv-python-headless
 opencv-python
 transformers
+tiktoken
