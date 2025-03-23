@@ -52,7 +52,7 @@ qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_n
 
 def chat_with_bot(message, history):
     if not message:
-        return "Please ask a question about plant diseases or treatments."
+        return history + [["", "Please ask a question about plant diseases or treatments."]]
     
     # Context for agricultural questions
     context = """
@@ -66,7 +66,9 @@ def chat_with_bot(message, history):
     except Exception as e:
         answer = f"Sorry, I couldn't process your request. Error: {str(e)}"
     
-    return answer
+    # Append the user message and the bot's response to the history
+    history.append([message, answer])
+    return history
 
 # Gradio interface
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visibility: hidden}") as app:
@@ -84,14 +86,16 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visib
             
             diagnose_button.click(fn=diagnose_image, inputs=[image_input], outputs=[diagnosis_output])
         
+        # Update the Gradio TabItem for the chatbot
         with gr.TabItem("Agricultural Chatbot"):
             gr.Markdown("Ask questions about plant diseases, treatments, or general agricultural topics.")
             chatbot = gr.Chatbot(height=400)
             msg = gr.Textbox(placeholder="Ask a question about agriculture...", label="Your Question")
             clear = gr.Button("Clear Chat")
-            
+    
+            # Pass the history explicitly to the `chat_with_bot` function
             msg.submit(fn=chat_with_bot, inputs=[msg, chatbot], outputs=[chatbot])
-            clear.click(lambda: None, None, chatbot, queue=False)
+            clear.click(lambda: [], None, chatbot, queue=False)
     
     gr.Markdown("## About this Application")
     gr.Markdown("""
