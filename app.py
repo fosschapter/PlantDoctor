@@ -53,22 +53,29 @@ qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_n
 def chat_with_bot(message, history):
     if not message:
         return history + [["", "Please ask a question about plant diseases or treatments."]]
-    
-    # Context for agricultural questions
-    context = """
+
+    # Dynamic context construction
+    relevant_context = """
     This chatbot is knowledgeable about plant diseases, treatments, and general agricultural practices. It uses AI to provide helpful insights based on your questions.
     """
     
+    # Search for matching disease/treatment advice in DEMO_TREATMENTS
+    for disease, treatment in DEMO_TREATMENTS.items():
+        if disease.lower().replace("_", " ") in message.lower():
+            relevant_context += f"\n\nTreatment for {disease.replace('_', ' ')}: {treatment}"
+            break  # Add advice for the first match
+
     try:
         # Use the pipeline for answering questions
-        response = qa_pipeline(question=message, context=context)
+        response = qa_pipeline(question=message, context=relevant_context)
         answer = response["answer"]
     except Exception as e:
         answer = f"Sorry, I couldn't process your request. Error: {str(e)}"
-    
+
     # Append the user message and the bot's response to the history
     history.append([message, answer])
     return history
+
 
 # Gradio interface
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visibility: hidden}") as app:
