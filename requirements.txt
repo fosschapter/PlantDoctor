@@ -10,3 +10,4 @@ opencv-python-headless
 opencv-python
 transformers
 tiktoken
+sentencepiece
