@@ -1,17 +1,21 @@
 import os
 import json
-import tempfile
 import numpy as np
 from PIL import Image
 import tensorflow as tf
 from model_loader import load_model, preprocess_image, predict_disease
 import gradio as gr
 
-# Load the model and class labels
+# Import RAG functionality
+from rag import RAGModel
+
+# Load the RAG model
+rag_model = RAGModel(model_path="path_to_rag_model", retriever_path="path_to_retriever")
+
+# Load the CNN model and class labels
 model_path = "attached_assets/mobilenetv2.h5"
 model = load_model(model_path)
 
-# Load class labels
 with open("class_labels.json", "r") as f:
     class_labels = json.load(f)
 
@@ -57,74 +61,15 @@ def diagnose_image(image):
     
     return result
 
-# Function for agriculture chatbot
+# Function for agriculture chatbot (RAG integrated)
 def chat_with_bot(message, history):
     if not message:
         return "Please ask a question about plant diseases or treatments."
     
-    # Enhanced keyword-based responses for the demo
-    message = message.lower()
+    # Use RAG model to generate response
+    response = rag_model.generate_response(message, history)
     
-    # Specific plant disease questions
-    if "tomato" in message and "blight" in message:
-        if "late" in message:
-            response = DEMO_TREATMENTS["Tomato_Late_blight"]
-        elif "early" in message:
-            response = DEMO_TREATMENTS["Tomato_Early_blight"]
-        else:
-            response = "There are different types of tomato blight. Common ones include Early Blight and Late Blight. Each requires different treatment approaches."
-    elif "apple" in message and "scab" in message:
-        response = DEMO_TREATMENTS["Apple_scab"]
-    
-    # General agriculture questions
-    elif "what is agriculture" in message or "define agriculture" in message:
-        response = "Agriculture is the science and practice of farming, including the cultivation of soil for growing crops and raising animals to provide food, fiber, and other products. It forms the foundation of our food systems and has been central to human civilization for thousands of years."
-    
-    elif "sustainable agriculture" in message or "sustainable farming" in message:
-        response = "Sustainable agriculture involves farming practices that protect the environment, public health, and animal welfare while ensuring economic viability. This includes techniques such as crop rotation, reduced tillage, precision agriculture, and integrated pest management."
-    
-    elif "organic farming" in message:
-        response = "Organic farming is an agricultural method that relies on natural processes and materials instead of synthetic chemicals. It emphasizes soil health, biodiversity, and ecological balance. Organic farmers avoid synthetic pesticides, fertilizers, genetically modified organisms, and growth hormones."
-    
-    elif "crop rotation" in message:
-        response = "Crop rotation is the practice of growing different types of crops in the same area across sequential seasons. It helps to reduce soil erosion, increase soil fertility and crop yield, and control pests, weeds, and diseases."
-    
-    elif "hydroponics" in message:
-        response = "Hydroponics is a method of growing plants without soil, using mineral nutrient solutions in a water solvent. Plants can be grown with their roots in the mineral nutrient solution only, or in an inert medium such as perlite or gravel. This technique is often used in controlled environments like greenhouses."
-
-    elif "vertical farming" in message:
-        response = "Vertical farming is the practice of growing crops in vertically stacked layers, often incorporating controlled-environment agriculture which aims to optimize plant growth. It often uses soilless farming techniques such as hydroponics, aquaponics, and aeroponics, and can be practiced in buildings, shipping containers, or repurposed warehouses."
-    
-    # Plant care topics
-    elif "healthy" in message:
-        response = "Healthy plants should be maintained with proper watering, sunlight, and nutrition. Regular inspection for early signs of disease is also important. Maintaining appropriate spacing between plants ensures good air circulation, which helps prevent fungal diseases."
-    
-    elif any(word in message for word in ["fertilizer", "fertilize", "nutrient"]):
-        response = "Most plants benefit from balanced fertilizers with nitrogen, phosphorus, and potassium. The exact ratio depends on the plant type and growth stage. Organic options include compost, manure, and bone meal. Applying fertilizer at the right time and in the right amount is crucial - too much can damage plants and pollute water sources."
-    
-    elif any(word in message for word in ["water", "watering", "irrigation"]):
-        response = "Proper watering is essential for plant health. Most plants prefer deep, infrequent watering rather than frequent shallow watering. Always check soil moisture before watering. Watering early in the morning reduces evaporation and allows foliage to dry before evening, which helps prevent disease."
-    
-    elif any(word in message for word in ["organic", "natural", "pesticide", "insecticide"]):
-        response = "Organic pest control methods include neem oil, insecticidal soap, diatomaceous earth, and beneficial insects like ladybugs. Cultural practices like crop rotation and companion planting can also help prevent pest problems. Creating habitat for beneficial insects and birds is another natural way to control pest populations."
-    
-    elif "soil health" in message or "soil quality" in message:
-        response = "Soil health is vital for plant growth and productivity. Healthy soil has good structure, adequate organic matter, beneficial microorganisms, and proper nutrient balance. Practices that improve soil health include adding compost, avoiding overworking the soil, planting cover crops, and minimizing chemical inputs."
-    
-    elif "composting" in message:
-        response = "Composting is the natural process of recycling organic material like leaves, food scraps, and yard waste into a rich soil amendment. Good compost needs a balance of 'green' materials (high in nitrogen) and 'brown' materials (high in carbon), plus adequate moisture and aeration for the microorganisms that break down the materials."
-    
-    # Climate and season-related questions
-    elif "climate change" in message and "agriculture" in message:
-        response = "Climate change poses significant challenges to agriculture, including more frequent extreme weather events, shifting growing seasons, and changing pest and disease patterns. Adaptation strategies include developing drought-resistant crops, improving irrigation efficiency, diversifying crops, and implementing climate-smart practices."
-    
-    elif "growing season" in message:
-        response = "The growing season is the part of the year during which local conditions (temperature, rainfall, daylight) permit normal plant growth. It varies by location, climate, and the specific requirements of different plants. Understanding your local growing season is essential for planning when to plant and harvest crops."
-    
-    # Catch-all for other questions
-    else:
-        response = "That's an interesting agricultural question. Agriculture encompasses many aspects including plant science, animal husbandry, soil management, pest control, and sustainable practices. For more detailed information on this specific topic, you might consider consulting agricultural extension services or specialized resources."
-    
+    # Return response
     return response
 
 # Create Gradio Interface
@@ -156,7 +101,7 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visib
     gr.Markdown("""
     This application uses a MobileNetV2 model trained on the PlantVillage dataset to diagnose common plant diseases from leaf images.
     
-    The chatbot provides information about various agricultural topics, plant diseases, and treatments based on keyword matching.
+    The chatbot provides information about various agricultural topics, plant diseases, and treatments using a RAG-based model for accurate and contextual responses.
     
     **Note:** This is a simplified version designed to work in environments like Hugging Face Spaces.
     
