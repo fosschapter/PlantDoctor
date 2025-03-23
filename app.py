@@ -115,4 +115,4 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visib
     
 # Launch Gradio app
 if __name__ == "__main__":
-    app.launch(server_name="0.0.0.0", share=False)
+    app.launch(server_name="0.0.0.0", share=True)
