@@ -58,7 +58,7 @@ qa_pipeline = None
 def load_qa_pipeline():
     global qa_pipeline
     if qa_pipeline is None:
-        model_name = "distilbert-base-cased-distilled-squad"
+        model_name = "sentence-transformers/all-MiniLM-L6-v2"
         qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_name)
 
 def chat_with_bot(message, history):
