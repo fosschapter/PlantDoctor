@@ -2,9 +2,9 @@ import os
 import json
 import numpy as np
 from PIL import Image
-from transformers import AutoTokenizer, TFAutoModel
-import gradio as gr
 from model_loader import load_model, preprocess_image, predict_disease
+import gradio as gr
+from groq import Groq
 import tensorflow as tf
 
 # Load the disease diagnosis model
@@ -27,22 +27,6 @@ DEMO_TREATMENTS = {
     "Grape_Black_rot": "For black rot in grapes, remove mummified berries, prune for good air circulation, apply fungicides like myclobutanil or captan, and maintain a clean vineyard floor."
 }
 
-# Load model and tokenizer
-model_name = "sentence-transformers/all-MiniLM-L6-v2"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-llm_model = TFAutoModel.from_pretrained(model_name)
-
-# Function to generate embeddings
-def embed_text_tf(text):
-    inputs = tokenizer(text, return_tensors="tf", padding=True, truncation=True)
-    outputs = llm_model(**inputs)
-    embeddings = tf.reduce_mean(outputs.last_hidden_state, axis=1)  # Mean pooling
-    return embeddings
-
-# Precompute embeddings for treatments
-treatment_texts = list(DEMO_TREATMENTS.values())
-treatment_embeddings = tf.concat([embed_text_tf(t) for t in treatment_texts], axis=0)
-
 # Diagnosis function
 def diagnose_image(image):
     if image is None:
@@ -63,24 +47,40 @@ def diagnose_image(image):
     result += f"### Recommended Treatment:\n{treatment}"
     return result
 
-# Chatbot function
+# Groq Chatbot API configuration
+client = Groq()
+
+# Chatbot function using Groq API
 def chat_with_bot(message, history):
     if not message:
         return history + [["", "Please ask a question about plant diseases or treatments."]]
 
-    # Embed the user's query
-    query_embedding = embed_text_tf(message)
-    
-    # Compute cosine similarity with treatment embeddings
-    similarities = tf.keras.metrics.CosineSimilarity(axis=1)
-    similarity_scores = similarities(query_embedding, treatment_embeddings)
-    best_match_idx = tf.argmax(similarity_scores).numpy()
-    
-    # Get the best-matching treatment advice
-    response = treatment_texts[best_match_idx]
-    history.append([message, response])
-    return history
+    # Query the Groq API for response
+    try:
+        completion = client.chat.completions.create(
+            model="deepseek-r1-distill-qwen-32b",
+            messages=[
+                {
+                    "role": "user",
+                    "content": message
+                }
+            ],
+            temperature=0.6,
+            max_completion_tokens=500,
+            top_p=0.95,
+            stream=True,
+            stop=None,
+        )
 
+        response = ""
+        for chunk in completion:
+            response += chunk.choices[0].delta.content or ""
+
+        history.append([message, response])
+    except Exception as e:
+        history.append([message, f"Error communicating with Groq API: {e}"])
+
+    return history
 
 # Gradio interface
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visibility: hidden}") as app:
@@ -110,7 +110,7 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visib
     gr.Markdown("## About this Application")
     gr.Markdown("""
     This application uses a MobileNetV2 model trained on the PlantVillage dataset to diagnose common plant diseases from leaf images.
-    The chatbot provides dynamic answers using a lightweight LLM for question-answering.
+    The chatbot provides dynamic answers using the Groq API for question-answering.
     """)
     
 # Launch Gradio app
