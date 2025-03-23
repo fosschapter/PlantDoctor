@@ -11,3 +11,4 @@ opencv-python
 transformers
 tiktoken
 sentencepiece
+scikit-learn
