@@ -2,7 +2,7 @@ import os
 import json
 import numpy as np
 from PIL import Image
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer, AutoModelForQuestionAnswering
 import gradio as gr
 from model_loader import load_model, preprocess_image, predict_disease
 
@@ -50,21 +50,23 @@ def diagnose_image(image):
 model_name = "distilbert-base-uncased-distilled-squad"
 qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_name)
 
-# Chatbot function
 def chat_with_bot(message, history):
-    if not message.strip():
-        return "Please ask a question related to agriculture, plant diseases, or treatments."
-
+    if not message:
+        return "Please ask a question about plant diseases or treatments."
+    
+    # Context for agricultural questions
     context = """
-    Agriculture involves farming and cultivation of crops and animals. Common plant diseases include Tomato Late Blight, Early Blight, Apple Scab, and more.
-    Treatments vary but often involve proper soil management, fungicides, crop rotation, and resistant plant varieties.
+    This chatbot is knowledgeable about plant diseases, treatments, and general agricultural practices. It uses AI to provide helpful insights based on your questions.
     """
-
+    
     try:
+        # Use the pipeline for answering questions
         response = qa_pipeline(question=message, context=context)
-        return response["answer"]
+        answer = response["answer"]
     except Exception as e:
-        return f"An error occurred while generating a response: {str(e)}"
+        answer = f"Sorry, I couldn't process your request. Error: {str(e)}"
+    
+    return answer
 
 # Gradio interface
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visibility: hidden}") as app:
