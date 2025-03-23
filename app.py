@@ -48,7 +48,7 @@ def diagnose_image(image):
     return result
 
 # Groq Chatbot API configuration
-client = Groq()
+client = Groq(api_key="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")
 
 # Chatbot function using Groq API
 def chat_with_bot(message, history):
