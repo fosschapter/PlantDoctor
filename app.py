@@ -2,24 +2,19 @@ import os
 import json
 import numpy as np
 from PIL import Image
-import tensorflow as tf
-from model_loader import load_model, preprocess_image, predict_disease
+from transformers import pipeline
 import gradio as gr
+from model_loader import load_model, preprocess_image, predict_disease
 
-# Import RAG functionality
-from rag import RAGModel
-
-# Load the RAG model
-rag_model = RAGModel(model_path="path_to_rag_model", retriever_path="path_to_retriever")
-
-# Load the CNN model and class labels
+# Load the disease diagnosis model
 model_path = "attached_assets/mobilenetv2.h5"
 model = load_model(model_path)
 
+# Load class labels
 with open("class_labels.json", "r") as f:
     class_labels = json.load(f)
 
-# Demo treatment information
+# Disease treatments dictionary
 DEMO_TREATMENTS = {
     "Tomato_Late_blight": "For late blight in tomatoes, remove and destroy infected plants, apply copper-based fungicides, ensure good air circulation, and consider resistant varieties for future plantings.",
     "Tomato_Early_blight": "For early blight in tomatoes, remove infected leaves, apply fungicides containing chlorothalonil or copper, mulch around plants, and practice crop rotation.",
@@ -31,48 +26,47 @@ DEMO_TREATMENTS = {
     "Grape_Black_rot": "For black rot in grapes, remove mummified berries, prune for good air circulation, apply fungicides like myclobutanil or captan, and maintain a clean vineyard floor."
 }
 
-# Function for image diagnosis
+# Diagnosis function
 def diagnose_image(image):
     if image is None:
         return "Please upload an image for diagnosis."
     
-    # Convert gradio image to numpy array
-    if isinstance(image, np.ndarray):
-        img_array = image
-    else:
-        # For PIL Image or other formats
-        img = Image.fromarray(image) if not isinstance(image, Image.Image) else image
-        img_array = np.array(img)
-    
-    # Process image and make prediction
+    img_array = np.array(image)
     preprocessed_img = preprocess_image(img_array)
     disease_label, confidence = predict_disease(model, preprocessed_img, class_labels)
-    
-    # Format the confidence percentage
     confidence_pct = f"{confidence:.1f}%"
     
-    # Get treatment recommendation if available
-    treatment = DEMO_TREATMENTS.get(disease_label, 
-                                 "No specific treatment information available for this condition. Consider consulting with a local agricultural extension service.")
+    treatment = DEMO_TREATMENTS.get(
+        disease_label, 
+        "No specific treatment information available for this condition. Consult with an agricultural expert."
+    )
     
     result = f"### Diagnosis: {disease_label.replace('_', ' ')}\n\n"
     result += f"### Confidence: {confidence_pct}\n\n"
     result += f"### Recommended Treatment:\n{treatment}"
-    
     return result
 
-# Function for agriculture chatbot (RAG integrated)
-def chat_with_bot(message, history):
-    if not message:
-        return "Please ask a question about plant diseases or treatments."
-    
-    # Use RAG model to generate response
-    response = rag_model.generate_response(message, history)
-    
-    # Return response
-    return response
+# Load a lightweight LLM for the chatbot
+model_name = "microsoft/deberta-v3-small"
+qa_pipeline = pipeline("question-answering", model=model_name, tokenizer=model_name)
 
-# Create Gradio Interface
+# Chatbot function
+def chat_with_bot(message, history):
+    if not message.strip():
+        return "Please ask a question related to agriculture, plant diseases, or treatments."
+
+    context = """
+    Agriculture involves farming and cultivation of crops and animals. Common plant diseases include Tomato Late Blight, Early Blight, Apple Scab, and more.
+    Treatments vary but often involve proper soil management, fungicides, crop rotation, and resistant plant varieties.
+    """
+
+    try:
+        response = qa_pipeline(question=message, context=context)
+        return response["answer"]
+    except Exception as e:
+        return f"An error occurred while generating a response: {str(e)}"
+
+# Gradio interface
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visibility: hidden}") as app:
     gr.Markdown("# 🌱 Plant Disease Diagnosis and Treatment")
     gr.Markdown("Upload a leaf image to diagnose plant diseases and get treatment recommendations.")
@@ -100,14 +94,9 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visib
     gr.Markdown("## About this Application")
     gr.Markdown("""
     This application uses a MobileNetV2 model trained on the PlantVillage dataset to diagnose common plant diseases from leaf images.
-    
-    The chatbot provides information about various agricultural topics, plant diseases, and treatments using a RAG-based model for accurate and contextual responses.
-    
-    **Note:** This is a simplified version designed to work in environments like Hugging Face Spaces.
-    
-    Image upload + Diagnosis → Get recommendations → Chat for more information
+    The chatbot provides dynamic answers using a lightweight LLM for question-answering.
     """)
-
-# For Hugging Face Spaces compatibility
+    
+# Launch Gradio app
 if __name__ == "__main__":
     app.launch(server_name="0.0.0.0", share=False)
