@@ -6,25 +6,27 @@ client = Groq(api_key="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"
 
 # Function to check if the input is related to agriculture using the LLM
 def is_agriculture_related(user_input):
-    # Prompt the LLM to determine if the input is agriculture-related
     try:
+        # Prompt the LLM to determine if the input is agriculture-related
         check_message = [
-            {"role": "system", "content": "You are an AI assistant. Respond with 'yes' if the following input is related to agriculture, otherwise respond with 'no'."},
+            {"role": "system", "content": "You are an AI assistant. Respond with 'yes' if the following input is related to agriculture, otherwise respond with 'no'. Provide a detailed explanation."},
             {"role": "user", "content": user_input}
         ]
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",  # Replace with your specific model
             messages=check_message,
             temperature=0,  # Use deterministic output
-            max_completion_tokens=1,
+            max_completion_tokens=50,  # Allow more tokens for a detailed response
             top_p=1,
             stop=None,
         )
 
-        # Parse the LLM response
+        # Parse the LLM response and check if "yes" is present
         decision = response.choices[0].message["content"].strip().lower()
-        print(decision)
-        return decision == "yes" or "'yes'"
+        print(f"LLM Response: {decision}")  # Debug log to see the full response
+
+        # Convert response to a list of words and check for "yes"
+        return "yes" in decision.split()
     except Exception as e:
         print(f"Error checking input relevance: {e}")
         return False
