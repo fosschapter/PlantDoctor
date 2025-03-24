@@ -106,10 +106,11 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visib
             chatbot = gr.Chatbot(height=400)
             msg = gr.Textbox(placeholder="Ask a question about agriculture...", label="Your Question")
             clear = gr.Button("Clear Chat")
-        
-            msg.submit(fn=chat_with_bot, inputs=[msg, chatbot], outputs=[chatbot])
+            chat_history_state = gr.State([])  # Maintain chat history
+            
+            msg.submit(fn=groq_chatbot, inputs=[msg, chat_history_state], outputs=[msg, chatbot])
             clear.click(lambda: [], None, chatbot, queue=False)
-    
+
     gr.Markdown("## About this Application")
     gr.Markdown("""
     This application uses a MobileNetV2 model trained on the PlantVillage dataset to diagnose common plant diseases from leaf images.
