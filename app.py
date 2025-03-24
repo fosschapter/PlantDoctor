@@ -99,7 +99,7 @@ def chat_with_bot(message, history):
 
         # Query the Groq API
         completion = client.chat.completions.create(
-            model="gemma2-9b-it",
+            model="qwen-2.5-32b",
             messages=messages,
             temperature=0.5,
             max_completion_tokens=250,
