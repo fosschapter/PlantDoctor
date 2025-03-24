@@ -8,146 +8,66 @@ emoji: 🌍
 sdk_version: 5.21.0
 app_file: app.py
 ---
+# Plant Disease Diagnosis and Agricultural Chatbot
 
-Groq-Powered Agriculture Chatbot
+This application, hosted on Hugging Face Spaces, allows users to diagnose plant diseases by uploading images of plant leaves and receive treatment recommendations. It also features an AI-powered chatbot to answer agricultural queries, leveraging a pre-trained machine learning model and the Groq API.
 
-This project is a chatbot powered by the Groq API and Gradio that specializes in responding to queries related to agriculture. It uses a pre-trained language model (LLM) to determine if a user's input is agriculture-related before providing relevant responses. If the input is not related to agriculture, the chatbot will politely ask the user to stay on the topic of agriculture.
-Features
+## Features
 
-    Agriculture-Focused Responses:
-    The chatbot only responds to queries related to agriculture.
+- **Disease Diagnosis:** Upload a leaf image to identify common plant diseases using a pre-trained MobileNetV2 model.
+- **Treatment Recommendations:** Get detailed treatment suggestions based on the diagnosed disease.
+- **Agricultural Chatbot:** Ask questions about plant diseases, treatments, or general agricultural topics and receive AI-generated responses via the Grok API.
 
-    LLM-Based Relevance Filtering:
-    Uses a language model to decide whether the user’s input is related to agriculture before replying.
+## Access the Application
 
-    Gradio Interface:
-    A simple and intuitive interface for chatting with the bot.
+The application is hosted on Hugging Face Spaces and can be accessed directly through this link:
 
-    Streamed Responses:
-    The bot streams its responses in real-time for a smooth conversational experience.
+[Plant Disease Diagnosis and Agricultural Chatbot on Hugging Face Spaces](https://huggingface.co/spaces/rayeanpatric/PlantDoctor)
 
-    Error Handling:
-    Graceful handling of API errors with meaningful feedback.
+## Usage
 
-Table of Contents
+1. **Access the Interface:**
+   - Visit the Hugging Face Space using the link above.
+   - The application will load in your web browser.
 
-    Installation
+2. **Diagnose Plant Disease:**
+   - Go to the "Diagnose Plant Disease" tab.
+   - Upload a clear, well-lit image of a plant leaf (supported formats: JPEG, PNG, etc.).
+   - Click the "Diagnose Disease" button.
+   - Check the diagnosis, confidence level, and treatment recommendation in the output section.
 
-    Usage
+3. **Agricultural Chatbot:**
+   - Switch to the "Agricultural Chatbot" tab.
+   - Enter your question in the text box (e.g., "How do I treat tomato blight?").
+   - Press Enter to submit.
+   - Read the chatbot’s response in the chat history.
+   - Use the "Clear Chat" button to start a new conversation.
 
-    How It Works
+**Notes:**
+- **Diagnosis Limitations:** The disease diagnosis relies on the PlantVillage dataset and supports species like Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper (Bell), Potato, Raspberry, Soybean, Squash, Strawberry, and Tomato. It may not detect diseases outside this dataset.
+- **Chatbot Accuracy:** Responses are AI-generated via the Grok API and may not always be accurate. Verify critical information with an agricultural expert.
 
-    Code Structure
+## About this Application
 
-    Dependencies
+- **Disease Diagnosis:** Powered by a MobileNetV2 model fine-tuned on the PlantVillage dataset to identify plant diseases from leaf images.
+- **Chatbot:** Utilizes the Grok API with the `llama-3.3-70b-versatile` model for dynamic question-answering.
+- **Supported Plants:** Includes diagnosis for Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper (Bell), Potato, Raspberry, Soybean, Squash, Strawberry, and Tomato.
 
-    License
+## Troubleshooting
 
-Installation
+- **Image Upload Issues:** Ensure your leaf images are clear and in supported formats (JPEG, PNG).
+- **Chatbot Not Responding:** Check your internet connection or refresh the page.
+- **Application Not Loading:** Use a compatible browser (e.g., Chrome, Firefox) and ensure JavaScript is enabled.
 
-Follow these steps to set up and run the project:
+## Contributing
 
-    Clone the Repository:
+Since the application is hosted on Hugging Face Spaces and cannot be cloned locally, contributions can be made by:
+1. Forking the space on Hugging Face.
+2. Implementing your changes.
+3. Submitting a pull request or collaborating via Hugging Face’s platform.
 
-git clone https://github.com/your-username/groq-agriculture-chatbot.git
-cd groq-agriculture-chatbot
+For more information, check Hugging Face’s documentation on collaborating with spaces.
 
-Create a Virtual Environment (optional):
+## License
 
-python3 -m venv venv
-source venv/bin/activate  # On Linux/Mac
-venv\Scripts\activate     # On Windows
-
-Install Dependencies: Install all required Python packages:
-
-pip install -r requirements.txt
-
-Set Your Groq API Key: Replace the placeholder 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 in the script with your actual Groq API key.
-
-Run the Application: Launch the Gradio interface:
-
-    python chatbot.py
-
-    Access the Chatbot:
-    Open your browser and go to the URL provided by Gradio, usually http://127.0.0.1:7860.
-
-Usage
-
-    Start the chatbot by running the script.
-
-    Enter your query in the input box in the Gradio interface.
-
-    If the query is related to agriculture, the chatbot will respond with an appropriate answer.
-
-    If the query is unrelated to agriculture, the chatbot will request you to ask something agriculture-related.
-
-How It Works
-Step-by-Step Workflow
-
-    User Input:
-    The user provides an input message.
-
-    Relevance Check:
-    The is_agriculture_related() function uses the LLM to determine if the input is related to agriculture:
-
-        A system message asks the LLM: "Is the input related to agriculture?"
-
-        The response is checked for the presence of the word "yes."
-
-    Chatbot Response:
-
-        If the input is agriculture-related, the chatbot generates a response using the Groq API.
-
-        If not, the bot politely prompts the user to stay on-topic.
-
-    Real-Time Output:
-    The bot streams its response back to the user in the Gradio interface.
-
-Code Structure
-
-groq-agriculture-chatbot/
-│
-├── chatbot.py            # Main script containing the chatbot logic.
-├── requirements.txt      # List of Python dependencies.
-├── README.md             # Documentation for the project.
-└── .gitignore            # Files to be ignored by Git.
-
-Key Functions
-
-    is_agriculture_related(user_input):
-
-        Prompts the LLM to determine if the input is related to agriculture.
-
-        Parses the response and checks for the word "yes."
-
-    groq_chatbot(user_input, chat_history):
-
-        Checks the input relevance.
-
-        If relevant, queries the Groq API to generate a response.
-
-        Updates the chat history and streams the output.
-
-    Gradio Interface:
-    Provides a user-friendly web interface for interacting with the bot.
-
-Dependencies
-
-Install the dependencies from requirements.txt:
-
-gradio==3.18.0
-groq
-
-License
-
-This project is licensed under the MIT License. Feel free to use and modify the code as per your needs.
-Future Improvements
-
-    Advanced Topic Filtering:
-    Enhance topic detection to support broader agriculture-related queries like climate change, soil health, etc.
-
-    Improved Error Handling:
-    Provide more descriptive error messages for different API-related issues.
-
-    Extended Model Support:
-    Integrate additional models for better context understanding and improved responses.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
