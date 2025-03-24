@@ -19,7 +19,7 @@ def chat_with_bot(message, history):
             temperature=0.5,
             max_completion_tokens=250,
             top_p=1.0,
-            stream=False,
+            stream=True,
         )
 
         response = ""
