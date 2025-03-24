@@ -7,6 +7,7 @@ import gradio as gr
 from groq import Groq
 import tensorflow as tf
 
+
 # Load the disease diagnosis model
 model_path = "attached_assets/mobilenetv2.h5"
 model = load_model(model_path)
@@ -122,7 +123,6 @@ def chat_with_bot(message, history):
 
     return history
 
-# Gradio interface
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visibility: hidden}") as app:
     gr.Markdown("# 🌱 Plant Disease Diagnosis and Treatment")
     gr.Markdown("Upload a leaf image to diagnose plant diseases and get treatment recommendations.")
@@ -143,7 +143,7 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visib
             chatbot = gr.Chatbot(height=400)
             msg = gr.Textbox(placeholder="Ask a question about agriculture...", label="Your Question")
             clear = gr.Button("Clear Chat")
-    
+        
             msg.submit(fn=chat_with_bot, inputs=[msg, chatbot], outputs=[chatbot])
             clear.click(lambda: [], None, chatbot, queue=False)
     
