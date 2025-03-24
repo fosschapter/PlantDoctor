@@ -6,5 +6,5 @@ colorTo: pink
 title: PlantDoctor
 emoji: 🌍
 sdk_version: 5.21.0
-app_file: chat_app.py
+app_file: app.py
 ---
