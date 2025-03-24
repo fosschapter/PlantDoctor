@@ -1,37 +1,62 @@
-# chat_app.py
+import gradio as gr
 from groq import Groq
 
-client = Groq(api_key="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")
+# Initialize the Groq client with your API key
+client = Groq(api_key="")  # Replace with your API key
 
-def chat_with_bot(message, history):
-    if not message.strip():
-        return history + [["", "Please ask a question about plant diseases or treatments."]]
-
+# Function to handle user input and get a response from the Groq API
+def groq_chatbot(user_input, chat_history=[]):
     try:
-        messages = [
-            {"role": "system", "content": "You are an expert in plant diseases and treatments. Answer questions based on agricultural knowledge."},
-            {"role": "user", "content": message}
-        ]
+        # Prepare messages for the Groq API
+        messages = [{"role": "system", "content": "You are a helpful assistant."}]
+        for user_message, bot_message in chat_history:
+            messages.append({"role": "user", "content": user_message})
+            messages.append({"role": "assistant", "content": bot_message})
+        messages.append({"role": "user", "content": user_input})
 
+        # Call the Groq API
         completion = client.chat.completions.create(
-            model="qwen-2.5-32b",
+            model="llama-3.3-70b-versatile",  # Replace with your specific model
             messages=messages,
-            temperature=0.5,
+            temperature=1,
             max_completion_tokens=250,
-            top_p=1.0,
+            top_p=1,
             stream=True,
+            stop=None,
         )
 
-        response = ""
+        # Collect the response from the streaming output
+        bot_reply = ""
         for chunk in completion:
-            if "choices" in chunk and chunk.choices[0].delta.content:
-                response += chunk.choices[0].delta.content
+            bot_reply += chunk.choices[0].delta.content or ""
 
-        if not response.strip():
-            response = "I couldn't generate an answer. Please try rephrasing your question or ask a different one."
-
-        history.append([message, response])
+        # Update the chat history
+        chat_history.append((user_input, bot_reply))
+        return "", chat_history
     except Exception as e:
-        history.append([message, f"Error communicating with Groq API: {e}"])
+        # Handle errors gracefully
+        error_message = f"Error: {str(e)}"
+        chat_history.append((user_input, error_message))
+        return "", chat_history
 
-    return history
+# Gradio interface
+with gr.Blocks() as gradio_app:
+    gr.Markdown("# Chatbot Using Groq API")
+    chat_history_state = gr.State([])
+
+    with gr.Row():
+        chatbot = gr.Chatbot()
+        message_input = gr.Textbox(
+            placeholder="Type your message here...",
+            label="Your Message"
+        )
+        send_button = gr.Button("Send")
+
+    send_button.click(
+        fn=groq_chatbot,
+        inputs=[message_input, chat_history_state],
+        outputs=[message_input, chatbot],
+        show_progress=True,
+    )
+
+gradio_app.launch()
