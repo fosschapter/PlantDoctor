@@ -6,7 +6,7 @@ from model_loader import load_model, preprocess_image, predict_disease
 import gradio as gr
 from groq import Groq
 import tensorflow as tf
-
+from chat_app import chat_with_bot 
 
 # Load the disease diagnosis model
 model_path = "attached_assets/mobilenetv2.h5"
