@@ -23,6 +23,7 @@ def is_agriculture_related(user_input):
 
         # Parse the LLM response
         decision = response.choices[0].message["content"].strip().lower()
+        print(decision)
         return decision == "yes"
     except Exception as e:
         print(f"Error checking input relevance: {e}")
