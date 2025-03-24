@@ -2,7 +2,7 @@ import gradio as gr
 from groq import Groq
 
 # Initialize the Groq client with your API key
-client = Groq(api_key="your_api_key")  # Replace with your API key
+client = Groq(api_key="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")  # Replace with your API key
 
 # Function to handle user input and get a response from the Groq API
 def groq_chatbot(user_input, chat_history=[]):
