@@ -86,43 +86,6 @@ def diagnose_image(image):
 # Groq Chatbot API configuration
 client = Groq(api_key="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")
 
-# Chatbot function using Groq API
-def chat_with_bot(message, history):
-    if not message.strip():
-        return history + [["", "Please ask a question about plant diseases or treatments."]]
-
-    try:
-        # Add a system prompt to guide the chatbot
-        messages = [
-            {"role": "system", "content": "You are an expert in plant diseases and treatments. Answer questions based on agricultural knowledge."},
-            {"role": "user", "content": message}
-        ]
-
-        # Query the Groq API
-        completion = client.chat.completions.create(
-            model="qwen-2.5-32b",
-            messages=messages,
-            temperature=0.5,
-            max_completion_tokens=250,
-            top_p=1.0,
-            stream=True,
-        )
-
-        # Collect response from the stream
-        response = ""
-        for chunk in completion:
-            if "choices" in chunk and chunk.choices[0].delta.content:
-                response += chunk.choices[0].delta.content
-
-        if not response.strip():
-            response = "I couldn't generate an answer. Please try rephrasing your question or ask a different one."
-
-        history.append([message, response])
-    except Exception as e:
-        history.append([message, f"Error communicating with Groq API: {e}"])
-
-    return history
-
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visibility: hidden}") as app:
     gr.Markdown("# 🌱 Plant Disease Diagnosis and Treatment")
     gr.Markdown("Upload a leaf image to diagnose plant diseases and get treatment recommendations.")
