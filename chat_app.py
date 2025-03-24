@@ -39,7 +39,7 @@ def groq_chatbot(user_input, chat_history=[]):
         chat_history.append((user_input, error_message))
         return "", chat_history
 
-# Gradio interface
+"""# Gradio interface
 with gr.Blocks() as gradio_app:
     gr.Markdown("# Chatbot Using Groq API")
     chat_history_state = gr.State([])
@@ -59,4 +59,4 @@ with gr.Blocks() as gradio_app:
         show_progress=True,
     )
 
-gradio_app.launch()
+gradio_app.launch()"""
