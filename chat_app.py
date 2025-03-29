@@ -1,8 +1,10 @@
+import os
 import gradio as gr
-from groq import Groq
+from groq import GroqClient
 
-# Initialize the Groq client with your API key
-client = Groq(api_key="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")  # Replace with your API key
+# Initialize the Groq client with the API key from environment variables
+api_key = os.getenv("GROQ_API_KEY")  # Replace with your environment variable
+client = GroqClient(api_key=api_key)
 
 # Function to handle user input and get a response from the Groq API
 def groq_chatbot(user_input, chat_history=[]):
@@ -18,9 +20,9 @@ def groq_chatbot(user_input, chat_history=[]):
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",  # Replace with your specific model
             messages=messages,
-            temperature=1,
+            temperature=0.7,
             max_completion_tokens=250,
-            top_p=1,
+            top_p=0.95,
             stream=True,
             stop=None,
         )
@@ -35,6 +37,19 @@ def groq_chatbot(user_input, chat_history=[]):
         return "", chat_history
     except Exception as e:
         # Handle errors gracefully
-        error_message = f"Error: {str(e)}"
+        print(f"Error: {e}")
+        error_message = "An error occurred. Please try again."
         chat_history.append((user_input, error_message))
         return "", chat_history
+
+# Create the Gradio interface
+with gr.Blocks() as demo:
+    chatbot = gr.Chatbot()
+    msg = gr.Textbox(placeholder="Type your message here...")
+    clear = gr.Button("Clear")
+
+    # Connect the components
+    msg.submit(groq_chatbot, [msg, chatbot], [msg, chatbot])
+    clear.click(lambda: None, None, chatbot)
+
+demo.launch()
