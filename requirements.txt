@@ -1,9 +1,8 @@
-tensorflow==2.13.0
-# keras is included in tensorflow 2.13.0
-numpy==1.24.3
+tensorflow==2.12.0
+numpy==1.23.5
 pillow==9.5.0
-gradio==4.44.0
-streamlit==1.27.0
+gradio==4.19.2
+streamlit==1.25.0
 flask==2.0.0
 gunicorn==20.1.0
 werkzeug==2.0.0
@@ -13,5 +12,6 @@ transformers==4.35.0
 tiktoken==0.5.1
 sentencepiece==0.1.99
 scikit-learn==1.3.0
-groq==0.4.0
+groq==0.3.0
 huggingface-hub==0.19.4
+typing-extensions==4.5.0
