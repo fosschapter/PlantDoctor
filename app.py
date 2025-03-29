@@ -84,7 +84,7 @@ def diagnose_image(image):
         return f"Error during diagnosis: {e}"
 
 # Groq Chatbot API configuration
-client = Groq(api_key="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")
+client = Groq(api_key="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")
 
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment", css="footer {visibility: hidden}") as app:
     gr.Markdown("# 🌱 Plant Disease Diagnosis and Treatment")
