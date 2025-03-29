@@ -7,3 +7,4 @@ groq
 opencv-python
 opencv-python-headless
 transformers
+tf_keras
