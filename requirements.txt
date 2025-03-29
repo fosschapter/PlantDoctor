@@ -1,4 +1,5 @@
 tensorflow==2.15.0
+keras
 numpy>=1.22.0
 pillow>=10.0.0
 gradio>=4.0.0
