@@ -1,10 +1,9 @@
 import os
 import gradio as gr
-from groq import GroqClient
+from groq import Groq
 
-# Initialize the Groq client with the API key from environment variables
-api_key = os.getenv("GROQ_API_KEY")  # Replace with your environment variable
-client = GroqClient(api_key=api_key)
+# Initialize the Groq client with your API key
+client = Groq(api_key="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")
 
 # Function to handle user input and get a response from the Groq API
 def groq_chatbot(user_input, chat_history=[]):
