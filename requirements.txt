@@ -2,9 +2,11 @@ tensorflow==2.15.0
 keras==2.15.0
 numpy>=1.22.0
 pillow>=10.0.0
-gradio>=4.0.0
+gradio
 groq
 opencv-python
 opencv-python-headless
 transformers
 tf_keras
+fastapi 
+uvicorn
