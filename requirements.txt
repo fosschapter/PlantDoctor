@@ -5,3 +5,4 @@ gradio>=4.0.0
 groq
 opencv-python
 opencv-python-headless
+transfomers
