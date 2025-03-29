@@ -1,6 +1,7 @@
 tensorflow==2.13.0
+# keras is included in tensorflow 2.13.0
 numpy==1.24.3
-pillow==10.0.0
+pillow==9.5.0
 gradio==4.44.0
 streamlit==1.27.0
 flask==2.0.0
