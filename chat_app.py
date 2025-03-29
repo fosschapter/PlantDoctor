@@ -16,8 +16,16 @@ RESPONSE_PROMPT = """
 You are an agriculture expert. Provide a concise and accurate answer to the following agriculture-related question:
 """
 
-# Function to validate and process the input
-def validate_and_process(input_text):
+def validate_input(input_text):
+    """
+    Validates whether the given input is agriculture-related or not.
+
+    Parameters:
+        input_text (str): The input question.
+
+    Returns:
+        str: "Yes" if agriculture-related, "No" otherwise.
+    """
     try:
         # Step 1: Send the validation prompt to the LLM
         validation_response = client.chat.completions.create(
@@ -30,57 +38,78 @@ def validate_and_process(input_text):
             temperature=0,
             max_completion_tokens=1,
         )
-
-        # Extract the LLM's response for validation
-        response_text = validation_response.choices[0].message.content.strip()
-
-        # Debugging: Print the response for verification
-        print(f"Validation Response: {response_text}")
-
-        # Step 2: Check the response and process accordingly
-        if response_text.lower() == "yes":
-            # If valid, pass the question to the LLM for an answer
-            detailed_response = client.chat.completions.create(
-                model="llama-3.1-8b-instant",  # Replace with your specific model
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": RESPONSE_PROMPT},
-                    {"role": "user", "content": input_text},
-                ],
-                temperature=0.5,
-                max_completion_tokens=250,
-            )
-
-            # Extract the answer from the LLM
-            answer = detailed_response.choices[0].message.content.strip()
-            return f"Valid Agriculture Input:\n{answer}"
-
-        elif response_text.lower() == "no":
-            # If not agriculture-related, return a message
-            return f"Invalid Input: Not agriculture-related. Please ask questions specifically about agriculture."
-
-        else:
-            return f"Unexpected Response from LLM: {response_text}"
-
+        # Extract and return the validation result
+        return validation_response.choices[0].message.content.strip()
     except Exception as e:
-        # Handle any errors gracefully
         return f"Error: {e}"
 
+
+def get_agriculture_response(input_text):
+    """
+    Gets a detailed response for a valid agriculture-related question.
+
+    Parameters:
+        input_text (str): The agriculture-related question.
+
+    Returns:
+        str: The response to the question.
+    """
+    try:
+        # Step 2: Send the agriculture question to the LLM
+        detailed_response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",  # Replace with your specific model
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": RESPONSE_PROMPT},
+                {"role": "user", "content": input_text},
+            ],
+            temperature=0.5,
+            max_completion_tokens=250,
+        )
+        # Extract and return the response
+        return detailed_response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Error: {e}"
+
+
+def groq_chatbot(input_text):
+    """
+    Validates the input and processes it to return a relevant response.
+
+    Parameters:
+        input_text (str): The input question.
+
+    Returns:
+        tuple: A tuple containing the validation status and the final message.
+    """
+    validation_result = validate_input(input_text)
+    if validation_result.lower() == "yes":
+        response = get_agriculture_response(input_text)
+        return "Valid", response
+    elif validation_result.lower() == "no":
+        return "Invalid", "Invalid Input: Not agriculture-related. Please ask questions specifically about agriculture."
+    else:
+        return "Error", f"Unexpected Response from LLM: {validation_result}"
+
 """
-# Create a Gradio interface
-with gr.Blocks() as demo:
-    gr.Markdown("### Agriculture-Based Input Validator and Question Answerer")
+# Gradio interface for testing
+def launch_gradio_interface():
 
-    input_text = gr.Textbox(label="Enter your question:")
-    output_text = gr.Textbox(label="Validation Result and Answer:")
+   # Launches the Gradio interface for validating and answering agriculture-related questions.
 
-    validate_button = gr.Button("Validate and Process")
+    with gr.Blocks() as demo:
+        gr.Markdown("### Agriculture-Based Input Validator and Question Answerer")
 
-    validate_button.click(
-        fn=validate_and_process,
-        inputs=input_text,
-        outputs=output_text,
-    )
+        input_text = gr.Textbox(label="Enter your question:")
+        output_text = gr.Textbox(label="Validation Result and Answer:")
 
-demo.launch()
+        validate_button = gr.Button("Validate and Process")
+
+        validate_button.click(
+            fn=lambda x: validate_and_process(x)[1],  # Call only the result message
+            inputs=input_text,
+            outputs=output_text,
+        )
+
+    demo.launch()
 """
