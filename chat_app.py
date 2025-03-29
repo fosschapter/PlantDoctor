@@ -40,7 +40,7 @@ def groq_chatbot(user_input, chat_history=[]):
         error_message = "An error occurred. Please try again."
         chat_history.append((user_input, error_message))
         return "", chat_history
-
+"""
 # Create the Gradio interface
 with gr.Blocks() as demo:
     chatbot = gr.Chatbot()
@@ -52,3 +52,4 @@ with gr.Blocks() as demo:
     clear.click(lambda: None, None, chatbot)
 
 demo.launch()
+"""
