@@ -91,7 +91,7 @@ def groq_chatbot(input_text):
     else:
         return "Error", f"Unexpected Response from LLM: {validation_result}"
 
-"""
+
 # Gradio interface for testing
 def launch_gradio_interface():
 
@@ -112,4 +112,3 @@ def launch_gradio_interface():
         )
 
     demo.launch()
-"""
