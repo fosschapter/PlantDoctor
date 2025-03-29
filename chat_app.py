@@ -3,7 +3,7 @@ from groq import Groq
 from transformers import pipeline
 
 # Initialize the Groq client
-client = Groq(api_key="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")
+client = Groq(api_key="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")
 
 # Initialize the intent classifier
 classifier = pipeline("text-classification", model="distilbert-base-uncased-finetuned-sst-2-english")
