@@ -106,7 +106,7 @@ def launch_gradio_interface():
         validate_button = gr.Button("Validate and Process")
 
         validate_button.click(
-            fn=lambda x: validate_and_process(x)[1],  # Call only the result message
+            fn=lambda x: groq_chatbot(x)[1],  # Call only the result message
             inputs=input_text,
             outputs=output_text,
         )
