@@ -38,9 +38,16 @@ def get_agriculture_response(input_text):
                 {"role": "user", "content": input_text},
             ],
             temperature=0.5,
-            max_completion_tokens=250,
+            max_completion_tokens=400,  # 🔥 Increased token limit
+            stop=["\n\n", "END"],  # 🔥 Ensures it stops at a natural point
         )
-        return detailed_response.choices[0].message.content.strip()
+        response_text = detailed_response.choices[0].message.content.strip()
+
+        # 🔥 Post-processing to handle incomplete responses
+        if response_text[-1] in {",", ":", "-", "and", "but"}:
+            response_text += "..."  # Indicates truncation
+
+        return response_text
     except Exception as e:
         return f"Error: {e}"
 
