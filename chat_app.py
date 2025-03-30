@@ -115,4 +115,4 @@ def launch_gradio_interface():
             outputs=output_text,
         )
 
-    demo.launch(server_name="0.0.0.0", share=True)
+    demo.launch(share=True)
