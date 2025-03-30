@@ -3,7 +3,11 @@ from groq import Groq
 import gradio as gr
 
 # Initialize the Groq client with your API key
-client = Groq(api_key="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")  # Replace with your actual API key
+API_KEY = os.getenv("GROQ_API_KEY")  # Set this in Hugging Face Spaces Secrets
+if not API_KEY:
+    raise ValueError("Missing GROQ_API_KEY environment variable. Set it in Hugging Face Spaces Secrets.")
+
+client = Groq(api_key=API_KEY)
 
 # Define the validation prompt
 VALIDATION_PROMPT = """
