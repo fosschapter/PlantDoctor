@@ -66,7 +66,10 @@ def diagnose_image(image):
 
         # Load the healthy leaf image
         healthy_leaf_path = os.path.join(SAVE_DIR, f"{plant_name}.jpg")
-        healthy_leaf = healthy_leaf_path if os.path.exists(healthy_leaf_path) else None
+        if os.path.exists(healthy_leaf_path):
+            healthy_leaf = np.array(Image.open(healthy_leaf_path))  # Convert image to NumPy array
+        else:
+            healthy_leaf = None  # No image found
 
         result = f"### Diagnosis: {disease_label}\n\n"
         result += f"### Confidence: {confidence_pct}\n\n"
