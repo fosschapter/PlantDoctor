@@ -15,7 +15,7 @@ RESPONSE_PROMPT = "You are an agriculture expert. Provide a concise and accurate
 def validate_input(input_text):
     try:
         validation_response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": VALIDATION_PROMPT},
