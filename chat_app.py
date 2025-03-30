@@ -3,7 +3,7 @@ from groq import Groq
 import gradio as gr
 
 # Initialize the Groq client with your API key
-client = Groq(api_key="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")  # Replace with your actual API key
+client = Groq(api_key="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")  # Replace with your actual API key
 
 # Define the validation prompt
 VALIDATION_PROMPT = """
