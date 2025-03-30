@@ -28,66 +28,43 @@ def validate_input(input_text):
     except Exception as e:
         return f"Error: {e}"
 
-def get_agriculture_response(input_text, chat_history):
+def get_agriculture_response(input_text):
     try:
-        messages = [{"role": "system", "content": "You are a helpful assistant."}]
-        
-        if chat_history:
-            messages += chat_history[-3:]  # Keep last few messages for continuity
-        
-        messages.append({"role": "user", "content": RESPONSE_PROMPT})
-        messages.append({"role": "user", "content": input_text})
-
-        # Dynamically adjust `max_completion_tokens` for longer queries
-        token_limit = 400 if len(input_text) > 50 else 250
-
         detailed_response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
-            messages=messages,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": RESPONSE_PROMPT},
+                {"role": "user", "content": input_text},
+            ],
             temperature=0.5,
-            max_completion_tokens=token_limit,
-            stop=["\n\n", "END"],  # Stop at natural points
+            max_completion_tokens=250,
         )
-        response_text = detailed_response.choices[0].message.content.strip()
-
-        # Post-processing check for unfinished responses
-        if response_text[-1] in {",", ":", "-", "and", "but"}:
-            response_text += "..."  # Indicates truncation
-
-        return response_text
+        return detailed_response.choices[0].message.content.strip()
     except Exception as e:
         return f"Error: {e}"
 
 def groq_chatbot(input_text, chat_history):
     validation_result = validate_input(input_text)
-    
     if validation_result.lower() == "yes":
         response = get_agriculture_response(input_text)
+        chat_history.append((input_text, response))  # Store the chat history as tuples
+        return chat_history, response
     elif validation_result.lower() == "no":
-        response = "❌ This is not an agriculture-related question."
+        return chat_history, "❌ This is not an agriculture-related question."
     else:
-        response = f"⚠️ Unexpected response: {validation_result}"
-
-    # Append to chat history
-    chat_history.append((input_text, response))
-    return chat_history, ""  # Clears input field after submission
+        return chat_history, f"⚠️ Error: Unexpected response: {validation_result}"
 
 def launch_gradio_interface():
-    with gr.Blocks() as demo:
-        gr.Markdown("### 🌱 Agriculture AI Assistant")
+    with gr.Blocks(css="style.css") as demo:
         gr.Markdown("Ask questions about plant diseases, treatments, or general agricultural topics.")
-
         chatbot = gr.Chatbot(height=400)
         msg = gr.Textbox(placeholder="Ask a question about agriculture...", label="Your Question")
         clear = gr.Button("Clear Chat")
-
-        chat_history_state = gr.State([])  # Stores chat history
-
-        # ✅ Enter key submits the question
-        msg.submit(fn=groq_chatbot, inputs=[msg, chat_history_state], outputs=[chatbot, msg])
-
-        # ✅ Clicking "Clear Chat" resets history
-        clear.click(lambda: ([], ""), None, [chatbot, msg], queue=False)
+        chat_history_state = gr.State([])  # Maintain chat history
+        
+        msg.submit(fn=groq_chatbot, inputs=[msg, chat_history_state], outputs=[chat_history_state, chatbot])
+        clear.click(lambda: [], None, chatbot, queue=False)
 
     demo.launch(share=True)
 
