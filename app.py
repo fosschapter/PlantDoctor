@@ -2,12 +2,11 @@ import os
 import json
 import numpy as np
 from PIL import Image
-from model_loader import load_model, preprocess_image, predict_disease
 import gradio as gr
-from groq import Groq
-from chat_app import groq_chatbot
 from bing_image_downloader import downloader
 import shutil
+from model_loader import load_model, preprocess_image, predict_disease
+from chat_app import groq_chatbot
 
 # Load the MobileNetV2 model
 model_path = "attached_assets/mobilenetv2.h5"
@@ -67,13 +66,13 @@ def diagnose_image(image):
 
         # Load the healthy leaf image
         healthy_leaf_path = os.path.join(SAVE_DIR, f"{plant_name}.jpg")
-        healthy_leaf = Image.open(healthy_leaf_path) if os.path.exists(healthy_leaf_path) else None
+        healthy_leaf = healthy_leaf_path if os.path.exists(healthy_leaf_path) else None
 
         result = f"### Diagnosis: {disease_label}\n\n"
         result += f"### Confidence: {confidence_pct}\n\n"
         result += f"### Recommended Treatment:\n{treatment}"
 
-        return result, gr.Image.update(value=healthy_leaf if healthy_leaf else None)
+        return result, healthy_leaf
     except Exception as e:
         return f"Error during diagnosis: {e}", None
 
