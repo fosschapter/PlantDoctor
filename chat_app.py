@@ -64,15 +64,20 @@ def launch_gradio_interface():
             elem_id="title",
         )
 
-        input_text = gr.Textbox(label="Enter your agriculture-related question:", placeholder="Type your question here...", lines=3, elem_id="input-box")
+        input_text = gr.Textbox(
+            label="Enter your agriculture-related question:",
+            placeholder="Type your question here...",
+            lines=3,
+            elem_id="input-box",
+        )
         validate_button = gr.Button("Validate & Process", elem_id="validate-button")
         
         validation_result = gr.Textbox(label="Validation", interactive=False, elem_id="validation-result")
         output_text = gr.Textbox(label="AI Response", interactive=False, elem_id="output-box")
 
-        # Allow both button click and pressing "Enter" to submit
-        input_text.submit(fn=groq_chatbot, inputs=input_text, outputs=[validation_result, output_text])
+        # ✅ Allow both Enter and button click to submit
         validate_button.click(fn=groq_chatbot, inputs=input_text, outputs=[validation_result, output_text])
+        input_text.submit(fn=groq_chatbot, inputs=input_text, outputs=[validation_result, output_text])  # 🔥 Fix: This makes Enter work
 
     demo.launch(share=True)
 
