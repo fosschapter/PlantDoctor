@@ -7,6 +7,7 @@ import gradio as gr
 from groq import Groq
 from chat_app import groq_chatbot
 from bing_image_downloader import downloader
+import shutil
 
 # Load the MobileNetV2 model
 model_path = "attached_assets/mobilenetv2.h5"
@@ -22,15 +23,23 @@ PLANT_CATEGORIES = [
     "Pepper", "Potato", "Raspberry", "Soybean", "Squash", "Strawberry", "Tomato"
 ]
 
-# Download and store healthy leaf images (Run once)
+# Ensure directory exists
 SAVE_DIR = "healthy_leaves"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
+# Download and move healthy leaf images (Run once)
 for plant in PLANT_CATEGORIES:
-    image_path = os.path.join(SAVE_DIR, f"{plant}.jpg")
-    if not os.path.exists(image_path):
-        print(f"Downloading healthy leaf image for {plant}...")
+    image_folder = os.path.join(SAVE_DIR, f"{plant}_healthy_leaf")
+    if not os.path.exists(image_folder):
         downloader.download(f"{plant} healthy leaf", limit=1, output_dir=SAVE_DIR, adult_filter_off=True, force_replace=False, timeout=60)
+
+    # Move the image to the main folder
+    downloaded_folder = os.path.join(SAVE_DIR, f"{plant}_healthy_leaf")
+    if os.path.exists(downloaded_folder):
+        images = os.listdir(downloaded_folder)
+        if images:
+            shutil.move(os.path.join(downloaded_folder, images[0]), os.path.join(SAVE_DIR, f"{plant}.jpg"))
+        shutil.rmtree(downloaded_folder)  # Remove empty subfolder
 
 # Disease treatments dictionary
 DEMO_TREATMENTS = {
@@ -45,13 +54,13 @@ DEMO_TREATMENTS = {
 def diagnose_image(image):
     if image is None:
         return "Please upload an image for diagnosis.", None
-    
+
     try:
         img_array = np.array(image)
         preprocessed_img = preprocess_image(img_array)
         disease_label, confidence = predict_disease(model, preprocessed_img, class_labels)
         confidence_pct = f"{confidence:.1f}%"
-        
+
         # Extract plant name
         plant_name = disease_label.split(" - ")[0]
         treatment = DEMO_TREATMENTS.get(disease_label, "No specific treatment available. Consult an expert.")
@@ -64,14 +73,20 @@ def diagnose_image(image):
         result += f"### Confidence: {confidence_pct}\n\n"
         result += f"### Recommended Treatment:\n{treatment}"
 
-        return result, healthy_leaf
+        return result, gr.Image.update(value=healthy_leaf if healthy_leaf else None)
     except Exception as e:
         return f"Error during diagnosis: {e}", None
+
+# Chatbot handler
+def chatbot_handler(user_input, chat_history):
+    response = groq_chatbot(user_input, chat_history)
+    chat_history.append((user_input, response))
+    return "", chat_history  # Return empty input and updated history
 
 # Gradio UI
 with gr.Blocks(title="Plant Disease Diagnosis and Treatment") as app:
     gr.Markdown("# 🌱 Plant Disease Diagnosis and Treatment")
-    
+
     with gr.Row():
         with gr.Column():
             image_input = gr.Image(type="numpy", label="📤 Upload Leaf Image")
@@ -81,7 +96,7 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment") as app:
             healthy_leaf_output = gr.Image(label="🌿 Healthy Leaf", interactive=False)
 
         with gr.Column():
-            chatbot = gr.Chatbot(height=400)
+            chatbot = gr.Chatbot(label="Agriculture Assistant", height=400)
             msg = gr.Textbox(placeholder="Ask about agriculture...", label="Your Question")
             clear = gr.Button("Clear Chat")
             chat_history_state = gr.State([])
@@ -90,7 +105,7 @@ with gr.Blocks(title="Plant Disease Diagnosis and Treatment") as app:
 
     # Button Click Actions
     diagnose_button.click(fn=diagnose_image, inputs=[image_input], outputs=[diagnosis_output, healthy_leaf_output])
-    msg.submit(fn=groq_chatbot, inputs=[msg, chat_history_state], outputs=[msg, chatbot])
+    msg.submit(fn=chatbot_handler, inputs=[msg, chat_history_state], outputs=[msg, chatbot])
     clear.click(lambda: [], None, chatbot, queue=False)
 
 app.launch(server_name="0.0.0.0", share=True)
