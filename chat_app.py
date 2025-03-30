@@ -70,6 +70,8 @@ def launch_gradio_interface():
         validation_result = gr.Textbox(label="Validation", interactive=False, elem_id="validation-result")
         output_text = gr.Textbox(label="AI Response", interactive=False, elem_id="output-box")
 
+        # Allow both button click and pressing "Enter" to submit
+        input_text.submit(fn=groq_chatbot, inputs=input_text, outputs=[validation_result, output_text])
         validate_button.click(fn=groq_chatbot, inputs=input_text, outputs=[validation_result, output_text])
 
     demo.launch(share=True)
