@@ -16,7 +16,7 @@ def validate_image(image):
     """Checks if the uploaded image is agriculture-related."""
     try:
         validation_response = client.chat.completions.create(
-            model="llava-phi-2-vision",
+            model="llama-3.2-11b-vision-preview",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": VALIDATION_PROMPT},
@@ -33,14 +33,14 @@ def analyze_agriculture_image(image):
     """Generates an answer if the image is agriculture-related."""
     try:
         response = client.chat.completions.create(
-            model="llava-phi-2-vision",
+            model="llama-3.2-11b-vision-preview",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": RESPONSE_PROMPT},
                 {"role": "user", "content": {"type": "image", "image_url": image}},
             ],
             temperature=0.5,
-            max_completion_tokens=150,
+            max_completion_tokens=250,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
