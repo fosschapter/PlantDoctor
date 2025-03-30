@@ -46,25 +46,34 @@ def get_agriculture_response(input_text):
 
 def groq_chatbot(input_text, chat_history):
     validation_result = validate_input(input_text)
+    
     if validation_result.lower() == "yes":
         response = get_agriculture_response(input_text)
-        chat_history.append((input_text, response))  # Store the chat history as tuples
-        return chat_history, response
     elif validation_result.lower() == "no":
-        return chat_history, "❌ This is not an agriculture-related question."
+        response = "❌ This is not an agriculture-related question."
     else:
-        return chat_history, f"⚠️ Error: Unexpected response: {validation_result}"
+        response = f"⚠️ Unexpected response: {validation_result}"
+
+    # Append to chat history
+    chat_history.append((input_text, response))
+    return chat_history, ""  # Clears input field after submission
 
 def launch_gradio_interface():
-    with gr.Blocks(css="style.css") as demo:
+    with gr.Blocks() as demo:
+        gr.Markdown("### 🌱 Agriculture AI Assistant")
         gr.Markdown("Ask questions about plant diseases, treatments, or general agricultural topics.")
+
         chatbot = gr.Chatbot(height=400)
         msg = gr.Textbox(placeholder="Ask a question about agriculture...", label="Your Question")
         clear = gr.Button("Clear Chat")
-        chat_history_state = gr.State([])  # Maintain chat history
-        
-        msg.submit(fn=groq_chatbot, inputs=[msg, chat_history_state], outputs=[chat_history_state, chatbot])
-        clear.click(lambda: [], None, chatbot, queue=False)
+
+        chat_history_state = gr.State([])  # Stores chat history
+
+        # ✅ Enter key submits the question
+        msg.submit(fn=groq_chatbot, inputs=[msg, chat_history_state], outputs=[chatbot, msg])
+
+        # ✅ Clicking "Clear Chat" resets history
+        clear.click(lambda: ([], ""), None, [chatbot, msg], queue=False)
 
     demo.launch(share=True)
 
