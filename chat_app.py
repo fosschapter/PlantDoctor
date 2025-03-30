@@ -44,40 +44,36 @@ def get_agriculture_response(input_text):
     except Exception as e:
         return f"Error: {e}"
 
-def groq_chatbot(input_text):
+def groq_chatbot(input_text, chat_history):
     validation_result = validate_input(input_text)
+    
     if validation_result.lower() == "yes":
         response = get_agriculture_response(input_text)
-        return "✅ Valid Input", response
     elif validation_result.lower() == "no":
-        return "❌ Invalid Input", "This is not an agriculture-related question. Please ask something relevant to agriculture."
+        response = "❌ This is not an agriculture-related question."
     else:
-        return "⚠️ Error", f"Unexpected response: {validation_result}"
+        response = f"⚠️ Unexpected response: {validation_result}"
+
+    # Append to chat history
+    chat_history.append((input_text, response))
+    return chat_history, ""  # Clears input field after submission
 
 def launch_gradio_interface():
-    with gr.Blocks(css="style.css") as demo:
-        gr.Markdown(
-            """
-            <h1 style="text-align: center; color: #4CAF50;">🌱 Agriculture AI Assistant</h1>
-            <p style="text-align: center; font-size: 18px;">An AI-powered tool for validating and answering agriculture-related questions.</p>
-            """,
-            elem_id="title",
-        )
+    with gr.Blocks() as demo:
+        gr.Markdown("### 🌱 Agriculture AI Assistant")
+        gr.Markdown("Ask questions about plant diseases, treatments, or general agricultural topics.")
 
-        input_text = gr.Textbox(
-            label="Enter your agriculture-related question:",
-            placeholder="Type your question here...",
-            lines=3,
-            elem_id="input-box",
-        )
-        validate_button = gr.Button("Validate & Process", elem_id="validate-button")
-        
-        validation_result = gr.Textbox(label="Validation", interactive=False, elem_id="validation-result")
-        output_text = gr.Textbox(label="AI Response", interactive=False, elem_id="output-box")
+        chatbot = gr.Chatbot(height=400)
+        msg = gr.Textbox(placeholder="Ask a question about agriculture...", label="Your Question")
+        clear = gr.Button("Clear Chat")
 
-        # ✅ Allow both Enter and button click to submit
-        validate_button.click(fn=groq_chatbot, inputs=input_text, outputs=[validation_result, output_text])
-        input_text.submit(fn=groq_chatbot, inputs=input_text, outputs=[validation_result, output_text])  # 🔥 Fix: This makes Enter work
+        chat_history_state = gr.State([])  # Stores chat history
+
+        # ✅ Enter key submits the question
+        msg.submit(fn=groq_chatbot, inputs=[msg, chat_history_state], outputs=[chatbot, msg])
+
+        # ✅ Clicking "Clear Chat" resets history
+        clear.click(lambda: ([], ""), None, [chatbot, msg], queue=False)
 
     demo.launch(share=True)
 
