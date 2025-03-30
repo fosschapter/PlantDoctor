@@ -53,22 +53,51 @@ def groq_chatbot(input_text):
     validation_result = validate_input(input_text)
     if validation_result.lower() == "yes":
         response = get_agriculture_response(input_text)
-        return "Valid", response
+        return "✅ Valid Input", response
     elif validation_result.lower() == "no":
-        return "Invalid", "Invalid Input: Not agriculture-related. Please ask agriculture-specific questions."
+        return "❌ Invalid Input", "This is not an agriculture-related question. Please ask something relevant to agriculture."
     else:
-        return "Error", f"Unexpected Response from LLM: {validation_result}"
+        return "⚠️ Error", f"Unexpected response: {validation_result}"
 
 def launch_gradio_interface():
-    """Launch Gradio UI."""
-    with gr.Blocks() as demo:
-        gr.Markdown("### Agriculture-Based Input Validator and Question Answerer")
-        input_text = gr.Textbox(label="Enter your question:")
-        output_text = gr.Textbox(label="Validation Result and Answer:")
-        validate_button = gr.Button("Validate and Process")
-        validate_button.click(fn=lambda x: groq_chatbot(x)[1], inputs=input_text, outputs=output_text)
+    """Launches a modern Gradio UI."""
 
-    demo.launch(share=True)  # Remove `server_name="0.0.0.0"`
+    with gr.Blocks(css="style.css") as demo:
+        with gr.Row():
+            gr.Markdown(
+                """
+                <h1 style="text-align: center; color: #4CAF50;">🌱 Agriculture AI Assistant</h1>
+                <p style="text-align: center; font-size: 18px;">An AI-powered tool for validating and answering agriculture-related questions.</p>
+                """,
+                elem_id="title",
+            )
+
+        with gr.Row():
+            with gr.Column(scale=1, min_width=300):
+                gr.Image("https://raw.githubusercontent.com/yourrepo/agriculture-ai/main/banner.png", show_label=False)
+
+            with gr.Column(scale=2):
+                input_text = gr.Textbox(
+                    label="Enter your agriculture-related question:",
+                    placeholder="Type your question here...",
+                    lines=3,
+                    elem_id="input-box",
+                )
+                validate_button = gr.Button("Validate & Process", elem_id="validate-button")
+
+        with gr.Row():
+            with gr.Column(scale=1):
+                validation_result = gr.Textbox(label="Validation", interactive=False, elem_id="validation-result")
+            with gr.Column(scale=2):
+                output_text = gr.Textbox(label="AI Response", interactive=False, elem_id="output-box")
+
+        validate_button.click(
+            fn=groq_chatbot,
+            inputs=input_text,
+            outputs=[validation_result, output_text],
+        )
+
+    demo.launch(share=True)
 
 if __name__ == "__main__":
     launch_gradio_interface()
