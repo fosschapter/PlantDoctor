@@ -28,22 +28,29 @@ def validate_input(input_text):
     except Exception as e:
         return f"Error: {e}"
 
-def get_agriculture_response(input_text):
+def get_agriculture_response(input_text, chat_history):
     try:
+        messages = [{"role": "system", "content": "You are a helpful assistant."}]
+        
+        if chat_history:
+            messages += chat_history[-3:]  # Keep last few messages for continuity
+        
+        messages.append({"role": "user", "content": RESPONSE_PROMPT})
+        messages.append({"role": "user", "content": input_text})
+
+        # Dynamically adjust `max_completion_tokens` for longer queries
+        token_limit = 400 if len(input_text) > 50 else 250
+
         detailed_response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": RESPONSE_PROMPT},
-                {"role": "user", "content": input_text},
-            ],
+            messages=messages,
             temperature=0.5,
-            max_completion_tokens=400,  # 🔥 Increased token limit
-            stop=["\n\n", "END"],  # 🔥 Ensures it stops at a natural point
+            max_completion_tokens=token_limit,
+            stop=["\n\n", "END"],  # Stop at natural points
         )
         response_text = detailed_response.choices[0].message.content.strip()
 
-        # 🔥 Post-processing to handle incomplete responses
+        # Post-processing check for unfinished responses
         if response_text[-1] in {",", ":", "-", "and", "but"}:
             response_text += "..."  # Indicates truncation
 
