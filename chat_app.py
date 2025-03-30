@@ -38,7 +38,7 @@ def get_agriculture_response(input_text):
                 {"role": "user", "content": input_text},
             ],
             temperature=0.5,
-            max_completion_tokens=250,
+            max_completion_tokens=400,
         )
         return detailed_response.choices[0].message.content.strip()
     except Exception as e:
