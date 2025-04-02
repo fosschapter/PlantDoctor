@@ -8,7 +8,9 @@ from model_loader import load_model, preprocess_image, predict_disease
 from chat_app import groq_chatbot
 
 # OpenWeatherMap API Key
-OWM_API_KEY = "aeacce09a78f91e055b86b8ffb349d4f"
+OWM_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+if not OWM_API_KEY:
+    raise ValueError("Missing OPENWEATHER_API_KEY environment variable. Set it in Hugging Face Spaces Secrets.")
 
 # Load the disease diagnosis model
 model_path = "attached_assets/mobilenetv2.h5"
