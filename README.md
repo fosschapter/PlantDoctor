@@ -6,7 +6,7 @@ colorTo: pink
 title: PlantDoctor
 emoji: 🌍
 sdk_version: 5.23.3
-app_file: weather_info.py
+app_file: app.py
 ---
 # Plant Disease Diagnosis and Agricultural Chatbot
 
