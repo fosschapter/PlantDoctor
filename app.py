@@ -30,14 +30,18 @@ DEMO_TREATMENTS = {
 
 # Function to get city suggestions (Live Search)
 def get_city_suggestions(query):
-    """Fetch city suggestions as user types."""
+    """Fetch city suggestions dynamically."""
     if not query:
-        return []
+        return [], gr.update(visible=False)  # Hide dropdown if no input
     
     url = f"http://api.openweathermap.org/geo/1.0/direct?q={query}&limit=5&appid={OWM_API_KEY}"
     response = requests.get(url).json()
     
-    return [f"{city['name']}, {city.get('country', '')}" for city in response] if response else []
+    if not response:
+        return [], gr.update(visible=False)  # No suggestions, hide dropdown
+    
+    choices = [f"{city['name']}, {city.get('country', '')}" for city in response]
+    return choices, gr.update(choices=choices, visible=True)  # Update dropdown options
 
 # Function to get latitude & longitude
 def get_coordinates(location):
@@ -116,7 +120,7 @@ with gr.Blocks(css="footer {visibility: hidden}") as app:
             fetch_button = gr.Button("🔄 Update Weather")
 
             # Live search for city suggestions
-            location_dropdown.change(fn=get_city_suggestions, inputs=location_dropdown, outputs=city_suggestions)
+            location_dropdown.change(fn=get_city_suggestions, inputs=location_dropdown, outputs=[city_suggestions, city_suggestions])
             city_suggestions.change(fn=get_weather_and_aqi, inputs=city_suggestions, outputs=weather_output)
 
             fetch_button.click(get_weather_and_aqi, inputs=location_dropdown, outputs=weather_output)
