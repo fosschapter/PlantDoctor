@@ -28,6 +28,17 @@ DEMO_TREATMENTS = {
     "Tomato - Healthy": "Your tomato plant is healthy! Maintain regular watering, ensure adequate sunlight, and monitor for pests or diseases."
 }
 
+# Function to get city suggestions (Live Search)
+def get_city_suggestions(query):
+    """Fetch city suggestions as user types."""
+    if not query:
+        return []
+    
+    url = f"http://api.openweathermap.org/geo/1.0/direct?q={query}&limit=5&appid={OWM_API_KEY}"
+    response = requests.get(url).json()
+    
+    return [f"{city['name']}, {city.get('country', '')}" for city in response] if response else []
+
 # Function to get latitude & longitude
 def get_coordinates(location):
     """Fetch latitude & longitude for a given location"""
@@ -93,10 +104,27 @@ def diagnose_image(image):
 # Build Gradio UI
 with gr.Blocks(css="footer {visibility: hidden}") as app:
     gr.Markdown("# 🌱 AI-Powered Agricultural Assistant")
-    gr.Markdown("Upload an image for plant disease detection, ask a chatbot for agricultural advice, or check local weather & air quality.")
+    gr.Markdown("This AI tool provides plant disease detection, local weather & air quality updates, and an agricultural chatbot.")
 
+    # 🌤️ Weather & AQI Section (Moved to Top)
     with gr.Row():
-        # LEFT: Image Upload & Disease Diagnosis
+        with gr.Column(scale=1):
+            gr.Markdown("## 🌤️ Weather & Air Quality")
+            location_dropdown = gr.Textbox(placeholder="Enter City Name...", label="🌍 Location (Live Search)")
+            city_suggestions = gr.Dropdown(choices=[], interactive=True, label="Select City", visible=False)
+            weather_output = gr.Markdown(label="🌦️ Weather & AQI")
+            fetch_button = gr.Button("🔄 Update Weather")
+
+            # Live search for city suggestions
+            location_dropdown.change(fn=get_city_suggestions, inputs=location_dropdown, outputs=city_suggestions)
+            city_suggestions.change(fn=get_weather_and_aqi, inputs=city_suggestions, outputs=weather_output)
+
+            fetch_button.click(get_weather_and_aqi, inputs=location_dropdown, outputs=weather_output)
+
+    gr.Markdown("---")
+
+    # 📸 Plant Disease Diagnosis Section
+    with gr.Row():
         with gr.Column(scale=1):
             gr.Markdown("## 📸 Upload Image for Diagnosis")
             image_input = gr.Image(type="numpy", label="Upload Leaf Image")
@@ -105,7 +133,10 @@ with gr.Blocks(css="footer {visibility: hidden}") as app:
 
             diagnose_button.click(fn=diagnose_image, inputs=[image_input], outputs=[diagnosis_output])
 
-        # RIGHT: Chatbot for Agricultural Advice
+    gr.Markdown("---")
+
+    # 🤖 Agricultural Chatbot Section
+    with gr.Row():
         with gr.Column(scale=1):
             gr.Markdown("## 🤖 Ask the Agricultural Chatbot")
             chatbot = gr.Chatbot(height=400)
@@ -115,18 +146,6 @@ with gr.Blocks(css="footer {visibility: hidden}") as app:
 
             msg.submit(fn=groq_chatbot, inputs=[msg, chat_history_state], outputs=[chatbot, msg])
             clear.click(lambda: ([], ""), None, [chatbot, msg], queue=False)
-
-    gr.Markdown("---")
-
-    # Weather & AQI Section
-    with gr.Row():
-        with gr.Column(scale=1):
-            gr.Markdown("## 🌤️ Weather & Air Quality")
-            location_dropdown = gr.Textbox(placeholder="Enter City Name", label="🌍 Location")
-            weather_output = gr.Markdown(label="🌦️ Weather & AQI")
-            fetch_button = gr.Button("🔄 Update Weather")
-
-            fetch_button.click(get_weather_and_aqi, inputs=location_dropdown, outputs=weather_output)
 
     gr.Markdown("---")
     gr.Markdown("### ℹ️ About this Application")
