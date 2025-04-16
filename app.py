@@ -63,59 +63,66 @@ DEMO_TREATMENTS = {
     "Tomato - Healthy": "Your tomato plant is healthy! Maintain regular watering, ensure adequate sunlight, and monitor for pests or diseases."
 }
 
-# Function to get city suggestions (Live Search)
-def get_city_suggestions(query):
-    """Fetch city suggestions dynamically."""
-    if not query:
-        return [], gr.update(visible=False)  # Hide dropdown if no input
-    
-    url = f"http://api.openweathermap.org/geo/1.0/direct?q={query}&limit=5&appid={OWM_API_KEY}"
-    response = requests.get(url).json()
-    
-    if not response:
-        return [], gr.update(visible=False)  # No suggestions, hide dropdown
-    
-    choices = [f"{city['name']}, {city.get('country', '')}" for city in response]
-    return choices, gr.update(choices=choices, visible=True)  # Update dropdown options
+# 🌐 Detect location using IP address
+def detect_location_from_ip():
+    try:
+        IPINFO_TOKEN = os.getenv("IPINFO_TOKEN")
+        url = f"https://ipinfo.io/json?token={IPINFO_TOKEN}"
+        response = requests.get(url).json()
+        city = response.get("city", "")
+        region = response.get("region", "")
+        if city and region:
+            return f"{city}, {region}"
+        elif city:
+            return city
+        else:
+            return "Chennai"  # fallback
+    except Exception as e:
+        return "Chennai"  # fallback
 
-# Function to get latitude & longitude
+# 🌍 Get coordinates for a city
 def get_coordinates(location):
-    """Fetch latitude & longitude for a given location"""
     url = f"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=1&appid={OWM_API_KEY}"
     response = requests.get(url).json()
-    
     if not response:
-        return None, None  # Invalid location
-    
+        return None, None
     return response[0]["lat"], response[0]["lon"]
 
-# Function to get weather & air quality
+# 🌦 Get weather & AQI info
 def get_weather_and_aqi(location):
-    """Fetch weather & air quality index (AQI)"""
     lat, lon = get_coordinates(location)
     if lat is None:
         return "❌ Invalid Location"
 
-    # Weather API
     weather_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OWM_API_KEY}&units=metric"
-    weather_res = requests.get(weather_url).json()
-
-    # AQI API
     aqi_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={OWM_API_KEY}"
+
+    weather_res = requests.get(weather_url).json()
     aqi_res = requests.get(aqi_url).json()
 
     if "main" not in weather_res or "list" not in aqi_res:
-        return "❌ Data Unavailable"
+        return "❌ Weather/AQI data unavailable"
 
-    aqi_level = aqi_res["list"][0]["main"]["aqi"]  # AQI scale: 1 (Good) → 5 (Hazardous)
+    aqi_level = aqi_res["list"][0]["main"]["aqi"]
     aqi_labels = ["🟢 Good", "🟡 Fair", "🟠 Moderate", "🔴 Poor", "🟣 Hazardous"]
-    
+
     return (
-        f"🌍 **{location}**\n"
-        f"🌡️ Temp: **{weather_res['main']['temp']}°C**\n"
-        f"💧 Humidity: **{weather_res['main']['humidity']}%**\n"
-        f"🌫️ AQI: **{aqi_labels[aqi_level - 1]} ({aqi_level})**"
+        f"🌍 {location} | "
+        f"🌡️ {weather_res['main']['temp']}°C | "
+        f"💧 {weather_res['main']['humidity']}% | "
+        f"🌫️ {aqi_labels[aqi_level - 1]} ({aqi_level})"
     )
+
+# 🔍 Get city suggestions dynamically
+def get_city_suggestions(query):
+    if not query:
+        return [], gr.update(visible=False)
+    url = f"http://api.openweathermap.org/geo/1.0/direct?q={query}&limit=5&appid={OWM_API_KEY}"
+    response = requests.get(url).json()
+    if not response:
+        return [], gr.update(visible=False)
+    choices = [f"{city['name']}, {city.get('country', '')}" for city in response]
+    return choices, gr.update(choices=choices, visible=True)
 
 # Function to diagnose plant disease
 def diagnose_image(image):
