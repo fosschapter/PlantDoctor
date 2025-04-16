@@ -155,17 +155,20 @@ with gr.Blocks(css="footer {visibility: hidden}") as app:
     # 🌤️ Weather & AQI Section (Moved to Top)
     with gr.Row():
         with gr.Column(scale=1):
-            gr.Markdown("## 🌤️ Weather & Air Quality")
-            location_dropdown = gr.Textbox(placeholder="Enter City Name...", label="🌍 Location (Live Search)")
-            city_suggestions = gr.Dropdown(choices=[], interactive=True, label="Select City", visible=False)
-            weather_output = gr.Markdown(label="🌦️ Weather & AQI")
-            fetch_button = gr.Button("🔄 Update Weather")
+            gr.Markdown("### 🌤️ Weather & Air Quality")
+            default_city = detect_location_from_ip()
+            location_input = gr.Textbox(value=default_city, label="🌍 Enter or auto-detected location")
+            suggestions = gr.Dropdown(choices=[], interactive=True, visible=False, label="📍 Suggestions")
+            weather_display = gr.HTML()
+            refresh_button = gr.Button("🔄 Refresh Weather")
 
-            # Live search for city suggestions
-            location_dropdown.change(fn=get_city_suggestions, inputs=location_dropdown, outputs=[city_suggestions, city_suggestions])
-            city_suggestions.change(fn=get_weather_and_aqi, inputs=city_suggestions, outputs=weather_output)
+            # Auto-load weather on launch
+            app.load(fn=get_weather_and_aqi, inputs=location_input, outputs=weather_display)
 
-            fetch_button.click(get_weather_and_aqi, inputs=location_dropdown, outputs=weather_output)
+            # Search functionality
+            location_input.change(fn=get_city_suggestions, inputs=location_input, outputs=[suggestions, suggestions])
+            suggestions.change(fn=get_weather_and_aqi, inputs=suggestions, outputs=weather_display)
+            refresh_button.click(fn=get_weather_and_aqi, inputs=location_input, outputs=weather_display)
 
     gr.Markdown("---")
 
