@@ -5,7 +5,7 @@ colorFrom: purple
 colorTo: pink
 title: PlantDoctor
 emoji: 🌍
-sdk_version: 5.23.3
+sdk_version: 5.25.2
 app_file: app.py
 ---
 # Plant Disease Diagnosis and Agricultural Chatbot
