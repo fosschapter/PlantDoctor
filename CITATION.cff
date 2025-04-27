@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "PlantDoctor: an AI-powered plant disease diagnosis tool"
+version: 0.1.0
+date-released: 2025-05-01
+authors:
+  - family-names: F
+    given-names: Rayean Patric
+    orcid: "https://orcid.org/0009-0004-2627-3506" 
+doi: 10.5281/zenodo.15283721

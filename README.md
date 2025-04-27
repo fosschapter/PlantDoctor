@@ -1,73 +1,124 @@
+# 🌍 PlantDoctor
+
+**A Plant Disease Diagnosis Tool + Agricultural AI Chatbot**
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15283721.svg)](https://doi.org/10.5281/zenodo.15283721)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)  
+[![Hugging Face Space](https://img.shields.io/badge/🤗%20HuggingFace-Space-orange)](https://huggingface.co/spaces/rayeanpatric/PlantDoctor)
+
 ---
-license: mit
-sdk: gradio
-colorFrom: purple
-colorTo: pink
-title: PlantDoctor
-emoji: 🌍
-sdk_version: 5.25.2
-app_file: app.py
+
+## 🧠 About the Project
+
+**PlantDoctor** is an AI-powered web application designed for rapid **plant disease diagnosis** and intelligent **agricultural query resolution**.
+
+- **Upload leaf images** to detect diseases using a fine-tuned MobileNetV2 model.
+- **Receive treatment recommendations** for 15+ plant types.
+- **Interact with a chatbot** (powered by `llama-3.3-70b-versatile` via the Groq API) to ask agricultural questions in natural language.
+
+Live demo available on: [Hugging Face Spaces](https://huggingface.co/spaces/rayeanpatric/PlantDoctor)
+
 ---
-# Plant Disease Diagnosis and Agricultural Chatbot
 
-This application, hosted on Hugging Face Spaces, allows users to diagnose plant diseases by uploading images of plant leaves and receive treatment recommendations. It also features an AI-powered chatbot to answer agricultural queries, leveraging a pre-trained machine learning model and the Groq API.
+## 🚀 Features
 
-## Features
+- 🌿 **Leaf-based Disease Detection**
+- 💊 **Treatment Recommendation System**
+- 🤖 **AI Chatbot for Agricultural Advice**
+- 🧪 Built using **Gradio**, **TensorFlow/Keras**, and **Groq LLM API**
 
-- **Disease Diagnosis:** Upload a leaf image to identify common plant diseases using a pre-trained MobileNetV2 model.
-- **Treatment Recommendations:** Get detailed treatment suggestions based on the diagnosed disease.
-- **Agricultural Chatbot:** Ask questions about plant diseases, treatments, or general agricultural topics and receive AI-generated responses via the Grok API.
+---
 
-## Access the Application
+## 🖥️ Local Installation
 
-The application is hosted on Hugging Face Spaces and can be accessed directly through this link:
+> Requires Python 3.10+
 
-[Plant Disease Diagnosis and Agricultural Chatbot on Hugging Face Spaces](https://huggingface.co/spaces/rayeanpatric/PlantDoctor)
+```bash
+git clone https://github.com/rayeanpatric/PlantDoctor.git
+cd PlantDoctor
 
-## Usage
+# Create virtual environment
+python -m venv env
+source env/bin/activate  # On Windows: .\env\Scripts\activate
 
-1. **Access the Interface:**
-   - Visit the Hugging Face Space using the link above.
-   - The application will load in your web browser.
+# Install dependencies
+pip install -r requirements.txt
 
-2. **Diagnose Plant Disease:**
-   - Go to the "Diagnose Plant Disease" tab.
-   - Upload a clear, well-lit image of a plant leaf (supported formats: JPEG, PNG, etc.).
-   - Click the "Diagnose Disease" button.
-   - Check the diagnosis, confidence level, and treatment recommendation in the output section.
+# Run the app
+python app.py
+```
 
-3. **Agricultural Chatbot:**
-   - Switch to the "Agricultural Chatbot" tab.
-   - Enter your question in the text box (e.g., "How do I treat tomato blight?").
-   - Press Enter to submit.
-   - Read the chatbot’s response in the chat history.
-   - Use the "Clear Chat" button to start a new conversation.
+---
 
-**Notes:**
-- **Diagnosis Limitations:** The disease diagnosis relies on the PlantVillage dataset and supports species like Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper (Bell), Potato, Raspberry, Soybean, Squash, Strawberry, and Tomato. It may not detect diseases outside this dataset.
-- **Chatbot Accuracy:** Responses are AI-generated via the Grok API and may not always be accurate. Verify critical information with an agricultural expert.
+## 🐳 Docker Support
 
-## About this Application
+If you'd rather use Docker:
 
-- **Disease Diagnosis:** Powered by a MobileNetV2 model fine-tuned on the PlantVillage dataset to identify plant diseases from leaf images.
-- **Chatbot:** Utilizes the Grok API with the `llama-3.3-70b-versatile` model for dynamic question-answering.
-- **Supported Plants:** Includes diagnosis for Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper (Bell), Potato, Raspberry, Soybean, Squash, Strawberry, and Tomato.
+```bash
+docker run -it -p 7860:7860 --platform=linux/amd64 -e GROQ_API_KEY="your_value_here" -e OPENWEATHER_API_KEY="your_value_here" registry.hf.space/rayeanpatric-plantdoctor:latest python app.py
+```
 
-## Troubleshooting
+---
 
-- **Image Upload Issues:** Ensure your leaf images are clear and in supported formats (JPEG, PNG).
-- **Chatbot Not Responding:** Check your internet connection or refresh the page.
-- **Application Not Loading:** Use a compatible browser (e.g., Chrome, Firefox) and ensure JavaScript is enabled.
+## 📊 Supported Crops
 
-## Contributing
+Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Bell Pepper, Potato, Raspberry, Soybean, Squash, Strawberry, Tomato
 
-Since the application is hosted on Hugging Face Spaces and cannot be cloned locally, contributions can be made by:
-1. Forking the space on Hugging Face.
-2. Implementing your changes.
-3. Submitting a pull request or collaborating via Hugging Face’s platform.
+---
 
-For more information, check Hugging Face’s documentation on collaborating with spaces.
+## 💬 Citing This Work
 
-## License
+If you use PlantDoctor in your research, please cite:
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+```bibtex
+@software{rayean_patric_2025_plantdoctor,
+  author       = {Rayean Patric F.},
+  title        = {PlantDoctor},
+  year         = 2025,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.15283531},
+  url          = {https://doi.org/10.5281/zenodo.15283531}
+}
+```
+
+---
+
+## 🤝 Contributing
+
+Want to contribute?
+
+1. Fork the repo or [Fork the HF Space](https://huggingface.co/spaces/rayeanpatric/PlantDoctor)
+2. Make your changes
+3. Open a pull request or submit via HF collaboration
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for details *(coming soon)*
+
+---
+
+## 🔒 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file.
+
+---
+
+## ✅ Reproducibility Checklist (SoftwareX)
+
+- [x] Open-source code & model weights included
+- [x] Executable via Docker and Python
+- [x] Zenodo DOI for archiving
+- [x] Environment dependencies listed (`requirements.txt`)
+- [x] Descriptive README with local setup, usage, and citation
+
+---
+
+## 🌐 Maintainer
+
+[Rayean Patric](https://www.linkedin.com/in/rayeanpatric) • [rayeanpatric](https://github.com/rayeanpatric)
+
+Have ideas or feedback? DM me on LinkedIn or open an issue!
+
+---
+
+Made with ❤️ by Rayean Patric
+
+---
