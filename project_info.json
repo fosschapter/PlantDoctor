@@ -1,0 +1,7 @@
+{
+    "project_name": "PlantDoctor",
+    "project_description": "PlantDoctor is an AI-powered web application designed for rapid plant disease diagnosis and intelligent agricultural query resolution. Upload leaf images to detect diseases using a fine-tuned MobileNetV2 model. Receive treatment recommendations for 15+ plant types. Interact with a chatbot (powered by llama-3.3-70b-versatile via the Groq API) to ask agricultural questions in natural language.",
+    "project_tech_stack": ["Python", "Gradio", "Grok"],
+    "project_author": "Rayean Patric F",
+    "project_author_url": "https://github.com/rayeanpatric"
+}
